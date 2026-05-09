@@ -17,6 +17,26 @@
   letter-spacing: -0.5px;
 }
 
+.menu-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-size: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 8px;
+  border-radius: 8px;
+  margin-left: -12px; /* sola doğru kaydırma */
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+.menu-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--accent-blue);
+}
+
 .user-profile {
   display: flex;
   align-items: center;
