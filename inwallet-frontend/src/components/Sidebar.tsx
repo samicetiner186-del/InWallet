@@ -11,9 +11,9 @@ interface SidebarProps {
 const menuItems = [
   { id: 'dashboard', icon: '🏠', label: 'Ana Sayfa' },
   { id: 'portfolio', icon: '💼', label: 'Portföyüm' },
-  { id: 'transactions', icon: '🔁', label: 'İşlem Geçmişi' },
+  { id: 'transactions', icon: '🔁', label: 'İşlem Geçmişi', badge: 3 },
   { id: 'goals', icon: '🎯', label: 'Hedeflerim' },
-  { id: 'settings', icon: '⚙️', label: 'Ayarlar' },
+  { id: 'settings', icon: '⚙️', label: 'Ayarlar', badge: '!' },
 ];
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, currentView, onNavigate }) => {
@@ -48,6 +48,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, currentView, onNavig
                 >
                   <span className="nav-icon">{item.icon}</span>
                   <span className="nav-label">{item.label}</span>
+                  {item.badge && (
+                    <span className={`nav-badge ${item.badge === '!' ? 'alert-badge' : 'count-badge'}`}>
+                      {item.badge}
+                    </span>
+                  )}
                 </button>
               </li>
             ))}
