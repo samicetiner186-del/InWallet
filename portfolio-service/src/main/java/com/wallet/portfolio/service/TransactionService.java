@@ -12,12 +12,15 @@ import java.util.List;
 public class TransactionService {
 
     private final TransactionRepository transactionRepository;
+    private final com.wallet.portfolio.kafka.TransactionProducer transactionProducer;
 
     public List<Transaction> getTransactionsByUserId(Long userId) {
         return transactionRepository.findByUserId(userId);
     }
 
     public Transaction createTransaction(Transaction transaction) {
-        return transactionRepository.save(transaction);
+        Transaction saved = transactionRepository.save(transaction);
+        transactionProducer.sendTransactionEvent(saved);
+        return saved;
     }
 }
