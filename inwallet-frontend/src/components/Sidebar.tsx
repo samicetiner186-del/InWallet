@@ -36,15 +36,18 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, currentView, onNavig
         
         {/* Brand Header */}
         <div className="sidebar-brand">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ filter: 'drop-shadow(0 4px 8px rgba(59, 130, 246, 0.4))' }}>
-              <rect x="2" y="5" width="20" height="14" rx="4" fill="url(#logo_gradient_sidebar)"/>
-              <path d="M22 10H16C14.8954 10 14 10.8954 14 12C14 13.1046 14.8954 14 16 14H22V10Z" fill="rgba(255,255,255,0.2)"/>
-              <circle cx="18" cy="12" r="1.5" fill="white"/>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6 12L14 26L22 12" stroke="url(#logo_side_g1)" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" style={{ filter: 'drop-shadow(0 4px 6px rgba(37, 99, 235, 0.5))' }}/>
+              <path d="M16 12L24 26L32 12" stroke="url(#logo_side_g2)" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" style={{ filter: 'drop-shadow(0 4px 6px rgba(96, 165, 250, 0.6))' }}/>
               <defs>
-                <linearGradient id="logo_gradient_sidebar" x1="2" y1="5" x2="22" y2="19" gradientUnits="userSpaceOnUse">
-                  <stop stopColor="#60A5FA"/>
-                  <stop offset="1" stopColor="#3B82F6"/>
+                <linearGradient id="logo_side_g1" x1="6" y1="12" x2="22" y2="26" gradientUnits="userSpaceOnUse">
+                  <stop stopColor="#3B82F6"/>
+                  <stop offset="1" stopColor="#1E40AF"/>
+                </linearGradient>
+                <linearGradient id="logo_side_g2" x1="16" y1="12" x2="32" y2="26" gradientUnits="userSpaceOnUse">
+                  <stop stopColor="#93C5FD"/>
+                  <stop offset="1" stopColor="#2563EB"/>
                 </linearGradient>
               </defs>
             </svg>
