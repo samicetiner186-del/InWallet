@@ -1,6 +1,6 @@
-package com.wallet.portfolio.inwallet_service.controller;
+package com.wallet.ai.controller;
 
-import com.wallet.portfolio.inwallet_service.service.AIAssistantService;
+import com.wallet.ai.service.AIAssistantService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

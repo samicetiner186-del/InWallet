@@ -1,7 +1,6 @@
-package com.wallet.portfolio.inwallet_service.service;
+package com.wallet.ai.service;
 
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -20,7 +19,7 @@ public class AIAssistantService {
     public String chatWithAgent(String userMessage, Long userId) {
         return chatClient.prompt()
                 .user(userMessage + " (Benim Kullanıcı ID'm: " + userId + ")")
-                .functions("getUserPortfolio") // Tool fonksiyonları entegre edildi
+                .functions("getUserPortfolio") // Portfolio Service'e bağlanıp veriyi çeken fonksiyon
                 .call()
                 .content();
     }
