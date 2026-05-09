@@ -9,6 +9,7 @@ import Portfolio from './pages/Portfolio';
 import Transactions from './pages/Transactions';
 import Goals from './pages/Goals';
 import Settings from './pages/Settings';
+import Favorites from './pages/Favorites';
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState('dashboard');
@@ -21,6 +22,7 @@ const App: React.FC = () => {
       case 'portfolio': return <Portfolio />;
       case 'transactions': return <Transactions />;
       case 'goals': return <Goals />;
+      case 'favorites': return <Favorites />;
       case 'settings': return <Settings />;
       default: return <Dashboard />;
     }
