@@ -16,12 +16,37 @@ const menuItems = [
   { id: 'settings', icon: '⚙️', label: 'Ayarlar', desc: 'Uygulama tercihleri', badge: '!', color: 'rgba(236, 72, 153, 0.2)', iconColor: '#ec4899' },
 ];
 
+const financialQuotes = [
+  { text: "Kural 1: Asla para kaybetme. Kural 2: Birinci kuralı asla unutma.", author: "Warren Buffett" },
+  { text: "Fiyat, ödediğinizdir. Değer ise elde ettiğinizdir.", author: "Warren Buffett" },
+  { text: "Borsa, sabırsızlardan sabırlılara para aktarma aracıdır.", author: "Warren Buffett" },
+  { text: "En iyi yatırım, kendine yaptığın yatırımdır.", author: "Benjamin Franklin" },
+  { text: "Zenginler zamanı, fakirler parayı satın alır.", author: "Robert Kiyosaki" },
+  { text: "Fırsatlar her gün gelir, önemli olan onları görebilmektir.", author: "Peter Lynch" },
+  { text: "Parayı kontrol etmeyi öğrenemezsen, para seni kontrol eder.", author: "Dave Ramsey" },
+  { text: "Risk, ne yaptığını bilmemekten gelir.", author: "Warren Buffett" },
+  { text: "Bugün bir ağacın gölgesinde oturabilmenizin sebebi, birinin yıllar önce o ağacı dikmiş olmasıdır.", author: "Warren Buffett" },
+  { text: "İyi bir yatırım portföyü, bir sabun kalıbı gibidir; ne kadar çok dokunursan o kadar küçülür.", author: "Eugene Fama" },
+];
+
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, currentView, onNavigate }) => {
   
   const handleNavigation = (id: string) => {
     onNavigate(id);
     onClose();
   };
+
+  // Get daily quote based on the day of the year
+  const getDailyQuote = () => {
+    const today = new Date();
+    const start = new Date(today.getFullYear(), 0, 0);
+    const diff = (today.getTime() - start.getTime()) + ((start.getTimezoneOffset() - today.getTimezoneOffset()) * 60 * 1000);
+    const oneDay = 1000 * 60 * 60 * 24;
+    const dayOfYear = Math.floor(diff / oneDay);
+    return financialQuotes[dayOfYear % financialQuotes.length];
+  };
+
+  const dailyQuote = getDailyQuote();
 
   return (
     <>
@@ -91,6 +116,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, currentView, onNavig
             <div className="profile-name">Sami</div>
             <div className="profile-email">sami@inwallet.app</div>
           </div>
+        </div>
+
+        {/* Daily Motivation Quote */}
+        <div className="sidebar-quote-card">
+          <div className="quote-icon">"</div>
+          <div className="quote-text">{dailyQuote.text}</div>
+          <div className="quote-author">— {dailyQuote.author}</div>
         </div>
 
         {/* Navigation Items */}
