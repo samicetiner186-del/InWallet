@@ -47,8 +47,8 @@ function App() {
             <div className="app-logo heading-gradient">InWallet</div>
           </div>
           <div className="user-profile">
-            <div className="text-muted">Hoş Geldiniz, Yuşa</div>
-            <div className="avatar">YM</div>
+            <div className="text-muted">Hoş Geldiniz, Sami</div>
+            <div className="avatar">SE</div>
           </div>
         </header>
         
