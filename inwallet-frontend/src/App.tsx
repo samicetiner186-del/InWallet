@@ -53,12 +53,23 @@ function App() {
                 <rect x="23" y="7" width="7" height="9" rx="1.5" fill="#F8FAFC" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))' }}/>
                 <rect x="24" y="9" width="5" height="2" rx="0.5" fill="#CBD5E1"/>
                 <path d="M4 14C4 11.79 5.79 10 8 10H28C30.21 10 32 11.79 32 14V26C32 28.21 30.21 30 28 30H8C5.79 30 4 28.21 4 26V14Z" fill="url(#main_w_bg)" stroke="rgba(255,255,255,0.15)" strokeWidth="1" style={{ filter: 'drop-shadow(0 6px 12px rgba(37, 99, 235, 0.5))' }}/>
+                
+                <rect x="12" y="11" width="12" height="10" rx="1.5" fill="url(#titanium_card)" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' }}/>
+                <rect x="13.5" y="13" width="3" height="2" rx="0.5" fill="#FBBF24"/>
+                <circle cx="20.5" cy="14" r="1.5" fill="#EF4444" opacity="0.8"/>
+                <circle cx="22" cy="14" r="1.5" fill="#F59E0B" opacity="0.8"/>
+
                 <path d="M4 16C4 16 12 19 18 19C24 19 32 16 32 16V26C32 28.21 30.21 30 28 30H8C5.79 30 4 28.21 4 26V16Z" fill="url(#main_w_front)"/>
                 <path d="M4 16C4 16 12 19 18 19C24 19 32 16 32 16" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5" strokeLinecap="round"/>
                 <path d="M11 22.5 L14.5 28 L18 22.5 L21.5 28 L25 22.5" stroke="#92400E" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.6))' }}/>
                 <path d="M11 21 L14.5 26.5 L18 21 L21.5 26.5 L25 21" stroke="url(#hologram_w)" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"/>
                 <path d="M11 21 L14.5 26.5 L18 21 L21.5 26.5 L25 21" stroke="#FFFFFF" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" opacity="0.6"/>
                 <defs>
+                  <linearGradient id="titanium_card" x1="12" y1="11" x2="24" y2="21" gradientUnits="userSpaceOnUse">
+                    <stop stopColor="#E2E8F0"/>
+                    <stop offset="0.5" stopColor="#CBD5E1"/>
+                    <stop offset="1" stopColor="#94A3B8"/>
+                  </linearGradient>
                   <linearGradient id="hologram_w" x1="10" y1="21" x2="26" y2="28" gradientUnits="userSpaceOnUse">
                     <stop stopColor="#FDF08B"/>
                     <stop offset="0.25" stopColor="#F59E0B"/>
