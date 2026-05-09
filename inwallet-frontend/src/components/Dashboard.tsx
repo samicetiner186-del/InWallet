@@ -1,6 +1,17 @@
+import React, { useState } from 'react';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import FinancialGoalsModal from './FinancialGoalsModal';
 
+const portfolioData = [
+  { name: 'Hisse Senedi', value: 55000, color: '#00d2ff' },
+  { name: 'Altın', value: 45000, color: '#f59e0b' },
+  { name: 'Kripto', value: 14500, color: '#8b5cf6' },
+  { name: 'Döviz', value: 10000, color: '#10b981' },
+];
 
 const Dashboard: React.FC = () => {
+  const [isGoalsModalOpen, setIsGoalsModalOpen] = useState(false);
+
   return (
     <div className="dashboard-grid">
       
@@ -38,17 +49,54 @@ const Dashboard: React.FC = () => {
         <div className="card-header">
           <span className="card-title">Portföy Dağılımı & Analiz</span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '300px', color: 'var(--text-secondary)' }}>
-          [Grafik Gelecek: Recharts vb. eklenebilir]
+        <div style={{ height: '300px', marginTop: '20px' }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={portfolioData}
+                cx="50%"
+                cy="50%"
+                innerRadius={80}
+                outerRadius={110}
+                paddingAngle={5}
+                dataKey="value"
+                stroke="none"
+              >
+                {portfolioData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Pie>
+              <Tooltip 
+                formatter={(value: number) => `₺${value.toLocaleString()}`}
+                contentStyle={{ background: 'rgba(15, 23, 42, 0.9)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
+                itemStyle={{ color: '#fff' }}
+              />
+              <Legend verticalAlign="bottom" height={36}/>
+            </PieChart>
+          </ResponsiveContainer>
         </div>
       </div>
 
       {/* Sidebar Area */}
       <div className="col-span-4 glass-card">
-        <div className="card-header">
+        <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span className="card-title">Finansal Hedefler</span>
+          <button 
+            onClick={() => setIsGoalsModalOpen(true)}
+            style={{
+              background: 'transparent',
+              border: '1px solid var(--accent-blue)',
+              color: 'var(--accent-blue)',
+              padding: '4px 12px',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontSize: '0.85rem'
+            }}
+          >
+            Tümünü Gör
+          </button>
         </div>
-        <div style={{ marginBottom: '20px' }}>
+        <div style={{ marginBottom: '20px', marginTop: '15px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
             <span>Ev Peşinatı</span>
             <span className="text-success">45%</span>
@@ -68,6 +116,10 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
       
+      <FinancialGoalsModal 
+        isOpen={isGoalsModalOpen} 
+        onClose={() => setIsGoalsModalOpen(false)} 
+      />
     </div>
   );
 };
