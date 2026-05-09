@@ -1,7 +1,7 @@
-package com.wallet.portfolio.inwallet_service.controller;
+package com.wallet.portfolio.controller;
 
-import com.wallet.portfolio.inwallet_service.entity.Asset;
-import com.wallet.portfolio.inwallet_service.service.AssetService;
+import com.wallet.portfolio.entity.Asset;
+import com.wallet.portfolio.service.AssetService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

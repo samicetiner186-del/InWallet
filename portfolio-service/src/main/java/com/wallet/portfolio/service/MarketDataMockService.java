@@ -1,4 +1,4 @@
-package com.wallet.portfolio.inwallet_service.service;
+package com.wallet.portfolio.service;
 
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;

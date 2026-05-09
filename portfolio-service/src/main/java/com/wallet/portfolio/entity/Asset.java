@@ -1,4 +1,4 @@
-package com.wallet.portfolio.inwallet_service.entity;
+package com.wallet.portfolio.entity;
 
 import jakarta.persistence.*;
 import lombok.*;

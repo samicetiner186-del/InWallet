@@ -1,10 +1,10 @@
-package com.wallet.portfolio.inwallet_service;
+package com.wallet.portfolio;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class InWalletServiceApplicationTests {
+class PortfolioApplicationTests {
 
 	@Test
 	void contextLoads() {

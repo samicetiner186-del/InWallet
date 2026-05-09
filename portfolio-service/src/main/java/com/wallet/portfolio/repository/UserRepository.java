@@ -1,6 +1,6 @@
-package com.wallet.portfolio.inwallet_service.repository;
+package com.wallet.portfolio.repository;
 
-import com.wallet.portfolio.inwallet_service.entity.User;
+import com.wallet.portfolio.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

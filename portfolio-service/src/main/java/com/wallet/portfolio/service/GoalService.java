@@ -1,7 +1,7 @@
-package com.wallet.portfolio.inwallet_service.service;
+package com.wallet.portfolio.service;
 
-import com.wallet.portfolio.inwallet_service.entity.Goal;
-import com.wallet.portfolio.inwallet_service.repository.GoalRepository;
+import com.wallet.portfolio.entity.Goal;
+import com.wallet.portfolio.repository.GoalRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

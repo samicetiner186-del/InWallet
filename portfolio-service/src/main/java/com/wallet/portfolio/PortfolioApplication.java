@@ -1,4 +1,4 @@
-package com.wallet.portfolio.inwallet_service;
+package com.wallet.portfolio;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -6,10 +6,10 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
 @EnableScheduling
-public class InWalletServiceApplication {
+public class PortfolioApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(InWalletServiceApplication.class, args);
+		SpringApplication.run(PortfolioApplication.class, args);
 	}
 
 }

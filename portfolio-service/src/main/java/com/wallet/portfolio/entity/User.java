@@ -1,4 +1,4 @@
-package com.wallet.portfolio.inwallet_service.entity;
+package com.wallet.portfolio.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -27,6 +27,18 @@ public class User {
     
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+    
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private java.util.List<Asset> assets = new java.util.ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private java.util.List<Goal> goals = new java.util.ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private java.util.List<Transaction> transactions = new java.util.ArrayList<>();
     
     @PrePersist
     protected void onCreate() {
