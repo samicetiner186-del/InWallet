@@ -15,6 +15,9 @@
   --accent-green: #10B981;
   --accent-red: #EF4444;
   
+  --success: var(--accent-green);
+  --danger: var(--accent-red);
+  
   --border-color: rgba(255, 255, 255, 0.1);
   --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   --shadow-glow: 0 0 20px rgba(96, 165, 250, 0.2);
