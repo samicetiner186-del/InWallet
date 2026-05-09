@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import AssetChartModal from '../components/AssetChartModal';
 
 const watchListMock = [
   { id: 1, symbol: 'THYAO.IS', name: 'Türk Hava Yolları', price: '₺294.50', change: '+%2.4', type: 'BIST 100', color: '#3b82f6' },
@@ -10,6 +11,8 @@ const watchListMock = [
 ];
 
 const Favorites: React.FC = () => {
+  const [selectedAsset, setSelectedAsset] = useState<any>(null);
+
   return (
     <div className="dashboard-grid">
       <div className="col-span-12 glass-card">
@@ -54,6 +57,12 @@ const Favorites: React.FC = () => {
               cursor: 'pointer',
               boxShadow: 'var(--shadow-sm)'
             }}
+            onClick={() => setSelectedAsset({
+              name: `${asset.symbol} - ${asset.name}`,
+              amount: asset.price,
+              profit: asset.change,
+              color: asset.color
+            })}
             onMouseEnter={e => {
               e.currentTarget.style.transform = 'translateY(-6px)';
               e.currentTarget.style.boxShadow = `0 10px 25px ${asset.color}20`;
@@ -106,6 +115,12 @@ const Favorites: React.FC = () => {
           ))}
         </div>
       </div>
+      
+      <AssetChartModal 
+        isOpen={selectedAsset !== null} 
+        onClose={() => setSelectedAsset(null)} 
+        asset={selectedAsset} 
+      />
     </div>
   );
 };
