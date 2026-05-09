@@ -46,10 +46,10 @@ const Settings: React.FC = () => {
           <section>
             <h3 style={{ color: 'var(--accent-blue)', marginBottom: '20px', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 600 }}>Profil Bilgileri</h3>
             <div style={{ display: 'flex', gap: '24px', alignItems: 'center', background: 'rgba(255,255,255,0.02)', padding: '24px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
-              <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--accent-blue), var(--accent-neon-blue))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px', fontWeight: 'bold', color: 'white', boxShadow: '0 8px 20px rgba(59, 130, 246, 0.4)' }}>YM</div>
+              <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--accent-blue), var(--accent-neon-blue))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px', fontWeight: 'bold', color: 'white', boxShadow: '0 8px 20px rgba(59, 130, 246, 0.4)' }}>SE</div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: '22px', fontWeight: 'bold', color: 'white' }}>Yuşa</div>
-                <div style={{ color: 'var(--text-muted)', marginTop: '4px' }}>yusa@inwallet.app</div>
+                <div style={{ fontSize: '22px', fontWeight: 'bold', color: 'white' }}>Sami</div>
+                <div style={{ color: 'var(--text-muted)', marginTop: '4px' }}>sami@inwallet.app</div>
               </div>
               <button style={{ padding: '10px 20px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '8px', color: 'white', cursor: 'pointer', fontWeight: 600, transition: 'background 0.3s ease' }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'} onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}>
                 Profili Düzenle
