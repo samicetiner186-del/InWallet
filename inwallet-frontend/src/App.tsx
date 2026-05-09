@@ -10,9 +10,10 @@ import Transactions from './pages/Transactions';
 import Goals from './pages/Goals';
 import Settings from './pages/Settings';
 
-function App() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+const App: React.FC = () => {
   const [currentView, setCurrentView] = useState('dashboard');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isPrivacyMode, setIsPrivacyMode] = useState(false);
 
   const renderView = () => {
     switch(currentView) {
@@ -87,7 +88,27 @@ function App() {
                   </linearGradient>
                 </defs>
               </svg>
-              <div className="app-logo heading-gradient">InWallet</div>
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <div className="app-logo heading-gradient">InWallet</div>
+                <button 
+                  onClick={() => setIsPrivacyMode(!isPrivacyMode)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: isPrivacyMode ? 'var(--accent-neon-blue)' : 'rgba(255,255,255,0.4)',
+                    fontSize: '22px',
+                    cursor: 'pointer',
+                    marginLeft: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    transition: 'all 0.3s ease',
+                    padding: '4px'
+                  }}
+                  title={isPrivacyMode ? 'Gizlilik Modunu Kapat' : 'Gizlilik Modunu Aç'}
+                >
+                  {isPrivacyMode ? '🙈' : '👁️'}
+                </button>
+              </div>
             </div>
           </div>
           <div className="user-profile">
@@ -96,7 +117,7 @@ function App() {
           </div>
         </header>
         
-        <main>
+        <main className={`app-main ${isPrivacyMode ? 'privacy-on' : ''}`}>
           {renderView()}
         </main>
 

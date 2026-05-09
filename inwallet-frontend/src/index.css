@@ -94,3 +94,15 @@ a:hover {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--border-color);
 }
+
+/* Privacy Mode Blur Effect */
+.sensitive-data {
+  transition: filter 0.3s ease, opacity 0.3s ease;
+}
+
+.privacy-on .sensitive-data {
+  filter: blur(8px);
+  opacity: 0.6;
+  user-select: none;
+  pointer-events: none;
+}

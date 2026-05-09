@@ -27,11 +27,11 @@ const Portfolio: React.FC = () => {
         <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '20px', marginBottom: '10px' }}>
           <div>
             <span className="card-title" style={{ fontSize: '24px', display: 'block', color: 'var(--text-secondary)' }}>Toplam Portföy Değeri</span>
-            <div className="heading-gradient" style={{ fontSize: '36px', fontWeight: 'bold', marginTop: '8px' }}>₺124,500.00</div>
+            <div className="heading-gradient sensitive-data" style={{ fontSize: '36px', fontWeight: 'bold', marginTop: '8px' }}>₺124,500.00</div>
           </div>
           
           {/* Dynamic Overall Profit/Loss Indicator */}
-          <div style={{ 
+            <div className="sensitive-data" style={{ 
             background: '+%5.2'.startsWith('+') ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
             color: '+%5.2'.startsWith('+') ? 'var(--success)' : 'var(--danger)',
             padding: '8px 16px',
@@ -104,7 +104,7 @@ const Portfolio: React.FC = () => {
                 <div style={{ color: 'var(--text-secondary)', fontSize: '14px', marginTop: '6px' }}>Anlık Değerleme</div>
               </div>
               <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: '22px', fontWeight: 'bold' }}>{asset.amount}</div>
+                <div className="sensitive-data" style={{ fontSize: '22px', fontWeight: 'bold' }}>{asset.amount}</div>
                 <div style={{ 
                   display: 'inline-block',
                   background: asset.profit.startsWith('+') ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',

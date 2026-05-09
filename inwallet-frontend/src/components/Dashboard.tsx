@@ -24,7 +24,7 @@ const Dashboard: React.FC = () => {
             <div className="card-header">
               <span className="card-title">Toplam Net Varlık</span>
             </div>
-            <div className="stat-value heading-gradient">₺124,500.00</div>
+            <div className="stat-value heading-gradient sensitive-data">₺124,500.00</div>
             <div style={{ 
               display: 'inline-block',
               background: '+5.2%'.startsWith('+') ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
@@ -34,7 +34,7 @@ const Dashboard: React.FC = () => {
               fontSize: '14px',
               fontWeight: 700,
               marginTop: '4px'
-            }}>
+            }} className="sensitive-data">
               {'+5.2%'.startsWith('+') ? '▲' : '▼'} {'+5.2%'} bu ay
             </div>
           </div>
@@ -43,7 +43,7 @@ const Dashboard: React.FC = () => {
             <div className="card-header">
               <span className="card-title">Aylık Gelir</span>
             </div>
-            <div className="stat-value">₺45,000.00</div>
+            <div className="stat-value sensitive-data">₺45,000.00</div>
             <div className="stat-label text-muted">Sabit Maaş</div>
           </div>
 
@@ -51,7 +51,7 @@ const Dashboard: React.FC = () => {
             <div className="card-header">
               <span className="card-title">Aylık Gider</span>
             </div>
-            <div className="stat-value">₺18,200.00</div>
+            <div className="stat-value sensitive-data">₺18,200.00</div>
             <div className="stat-label text-danger">Kredi & Faturalar</div>
           </div>
         </div>
@@ -146,21 +146,21 @@ const Dashboard: React.FC = () => {
                   <div style={{ fontWeight: 500, fontSize: '0.95rem' }}>Konut Kredisi Taksiti</div>
                   <div className="text-muted" style={{ fontSize: '0.8rem', marginTop: '2px' }}>15 Mayıs 2026</div>
                 </div>
-                <div className="text-danger" style={{ fontWeight: 'bold' }}>-₺12,500.00</div>
+                <div className="text-danger sensitive-data" style={{ fontWeight: 'bold' }}>-₺12,500.00</div>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                 <div>
                   <div style={{ fontWeight: 500, fontSize: '0.95rem' }}>Kredi Kartı Ekstresi</div>
                   <div className="text-muted" style={{ fontSize: '0.8rem', marginTop: '2px' }}>22 Mayıs 2026</div>
                 </div>
-                <div className="text-danger" style={{ fontWeight: 'bold' }}>-₺8,450.00</div>
+                <div className="text-danger sensitive-data" style={{ fontWeight: 'bold' }}>-₺8,450.00</div>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0' }}>
                 <div>
                   <div style={{ fontWeight: 500, fontSize: '0.95rem' }}>Araç Sigortası</div>
                   <div className="text-muted" style={{ fontSize: '0.8rem', marginTop: '2px' }}>05 Haziran 2026</div>
                 </div>
-                <div className="text-danger" style={{ fontWeight: 'bold' }}>-₺4,200.00</div>
+                <div className="text-danger sensitive-data" style={{ fontWeight: 'bold' }}>-₺4,200.00</div>
               </div>
             </div>
           </div>
@@ -179,21 +179,21 @@ const Dashboard: React.FC = () => {
                   <div style={{ fontWeight: 500, fontSize: '0.95rem' }}>Freelance Proje</div>
                   <div className="text-muted" style={{ fontSize: '0.8rem', marginTop: '2px' }}>12 Mayıs 2026</div>
                 </div>
-                <div className="text-success" style={{ fontWeight: 'bold' }}>+₺15,000.00</div>
+                <div className="text-success sensitive-data" style={{ fontWeight: 'bold' }}>+₺15,000.00</div>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                 <div>
                   <div style={{ fontWeight: 500, fontSize: '0.95rem' }}>Kira Geliri</div>
                   <div className="text-muted" style={{ fontSize: '0.8rem', marginTop: '2px' }}>20 Mayıs 2026</div>
                 </div>
-                <div className="text-success" style={{ fontWeight: 'bold' }}>+₺18,500.00</div>
+                <div className="text-success sensitive-data" style={{ fontWeight: 'bold' }}>+₺18,500.00</div>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0' }}>
                 <div>
                   <div style={{ fontWeight: 500, fontSize: '0.95rem' }}>Temettü Ödemesi</div>
                   <div className="text-muted" style={{ fontSize: '0.8rem', marginTop: '2px' }}>28 Mayıs 2026</div>
                 </div>
-                <div className="text-success" style={{ fontWeight: 'bold' }}>+₺3,250.00</div>
+                <div className="text-success sensitive-data" style={{ fontWeight: 'bold' }}>+₺3,250.00</div>
               </div>
             </div>
           </div>
