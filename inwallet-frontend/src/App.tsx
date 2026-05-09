@@ -26,7 +26,7 @@ function App() {
   };
 
   return (
-    <div className="app-layout">
+    <>
       <Sidebar 
         isOpen={isSidebarOpen} 
         onClose={() => setIsSidebarOpen(false)} 
@@ -34,7 +34,7 @@ function App() {
         onNavigate={setCurrentView}
       />
       
-      <div className="main-content">
+      <div className="app-container">
         <header className="app-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <button 
@@ -58,7 +58,7 @@ function App() {
 
         <AIChatWidget />
       </div>
-    </div>
+    </>
   );
 }
 

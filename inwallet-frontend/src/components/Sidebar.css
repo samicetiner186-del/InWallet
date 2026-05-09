@@ -1,69 +1,43 @@
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.sidebar-overlay.open {
+  opacity: 1;
+  visibility: visible;
+}
+
 .sidebar-drawer {
-  position: sticky;
-  top: 32px;
-  width: 300px;
-  height: calc(100vh - 64px);
-  background: var(--bg-glass);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--border-color);
-  border-radius: 32px;
-  z-index: 100;
+  position: fixed;
+  top: 0;
+  left: -320px;
+  width: 320px;
+  height: 100vh;
+  background: rgba(15, 23, 42, 0.98);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0;
+  z-index: 1001;
   display: flex;
   flex-direction: column;
   padding: 0;
-  box-shadow: var(--shadow-sm);
+  transition: left 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+  box-shadow: 20px 0 50px rgba(0, 0, 0, 0.5);
   overflow-y: auto;
   overflow-x: hidden;
-  flex-shrink: 0;
-  transition: box-shadow 0.3s ease, transform 0.3s ease;
 }
 
-.sidebar-drawer:hover {
-  box-shadow: 0 0 30px rgba(59, 130, 246, 0.1);
-}
-
-.sidebar-overlay {
-  display: none; /* Masaüstünde gizli */
-}
-
-/* Mobile Responsive */
-@media (max-width: 1024px) {
-  .sidebar-drawer {
-    position: fixed;
-    top: 0;
-    left: -320px;
-    width: 300px;
-    height: 100vh;
-    border-radius: 0;
-    z-index: 1001;
-    transition: left 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-    box-shadow: 20px 0 50px rgba(0, 0, 0, 0.5);
-  }
-
-  .sidebar-drawer.open {
-    left: 0;
-  }
-
-  .sidebar-overlay {
-    display: block; /* Mobilde görünür */
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(4px);
-    z-index: 1000;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
-  }
-
-  .sidebar-overlay.open {
-    opacity: 1;
-    visibility: visible;
-  }
+.sidebar-drawer.open {
+  left: 0;
 }
 
 /* Sidebar Brand */

@@ -1,16 +1,7 @@
-.app-layout {
-  display: flex;
-  min-height: 100vh;
-  width: 100%;
-  max-width: 1440px;
+.app-container {
+  max-width: 1200px;
   margin: 0 auto;
   padding: 32px 24px;
-  gap: 40px;
-}
-
-.main-content {
-  flex: 1;
-  width: 100%;
 }
 
 .app-header {
@@ -45,8 +36,8 @@
   padding: 6px 12px;
   border-radius: 8px;
   margin-right: 16px;
+  margin-left: -12px;
   transition: background 0.3s ease, color 0.3s ease;
-  display: none; /* Masaüstünde gizli */
 }
 
 .menu-btn:hover {
@@ -86,21 +77,8 @@
 .col-span-4 { grid-column: span 4; }
 
 @media (max-width: 1024px) {
-  .app-layout {
-    padding: 24px 16px;
-    gap: 0;
-  }
-  
   .col-span-8, .col-span-4 {
     grid-column: span 12;
-  }
-  
-  .menu-btn {
-    display: flex; /* Mobilde göster */
-  }
-
-  .main-content {
-    padding: 0;
   }
 }
 
