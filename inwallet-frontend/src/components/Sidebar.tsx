@@ -123,8 +123,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, currentView, onNavig
           <div className="quote-icon">"</div>
           <div className="quote-text">{dailyQuote.text}</div>
           <div className="quote-author">
-            <div className="author-line"></div>
-            <span className="author-name">{dailyQuote.author}</span>
+            <span className="author-name">~ {dailyQuote.author}</span>
           </div>
         </div>
 
