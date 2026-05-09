@@ -4,12 +4,35 @@ import Dashboard from './components/Dashboard';
 import AIChatWidget from './components/AIChatWidget';
 import Sidebar from './components/Sidebar';
 
+// Pages
+import Portfolio from './pages/Portfolio';
+import Transactions from './pages/Transactions';
+import Goals from './pages/Goals';
+import Settings from './pages/Settings';
+
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [currentView, setCurrentView] = useState('dashboard');
+
+  const renderView = () => {
+    switch(currentView) {
+      case 'dashboard': return <Dashboard />;
+      case 'portfolio': return <Portfolio />;
+      case 'transactions': return <Transactions />;
+      case 'goals': return <Goals />;
+      case 'settings': return <Settings />;
+      default: return <Dashboard />;
+    }
+  };
 
   return (
     <>
-      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      <Sidebar 
+        isOpen={isSidebarOpen} 
+        onClose={() => setIsSidebarOpen(false)} 
+        currentView={currentView}
+        onNavigate={setCurrentView}
+      />
       
       <div className="app-container">
         <header className="app-header">
@@ -30,7 +53,7 @@ function App() {
         </header>
         
         <main>
-          <Dashboard />
+          {renderView()}
         </main>
 
         <AIChatWidget />

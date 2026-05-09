@@ -4,17 +4,25 @@ import './Sidebar.css';
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
+  currentView: string;
+  onNavigate: (viewId: string) => void;
 }
 
 const menuItems = [
-  { id: 'dashboard', icon: '🏠', label: 'Ana Sayfa', active: true },
-  { id: 'portfolio', icon: '💼', label: 'Portföyüm', active: false },
-  { id: 'transactions', icon: '🔁', label: 'İşlem Geçmişi', active: false },
-  { id: 'goals', icon: '🎯', label: 'Hedeflerim', active: false },
-  { id: 'settings', icon: '⚙️', label: 'Ayarlar', active: false },
+  { id: 'dashboard', icon: '🏠', label: 'Ana Sayfa' },
+  { id: 'portfolio', icon: '💼', label: 'Portföyüm' },
+  { id: 'transactions', icon: '🔁', label: 'İşlem Geçmişi' },
+  { id: 'goals', icon: '🎯', label: 'Hedeflerim' },
+  { id: 'settings', icon: '⚙️', label: 'Ayarlar' },
 ];
 
-const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
+const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, currentView, onNavigate }) => {
+  
+  const handleNavigation = (id: string) => {
+    onNavigate(id);
+    onClose();
+  };
+
   return (
     <>
       {/* Overlay */}
@@ -34,7 +42,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           <ul>
             {menuItems.map(item => (
               <li key={item.id}>
-                <button className={`nav-item ${item.active ? 'active' : ''}`}>
+                <button 
+                  className={`nav-item ${currentView === item.id ? 'active' : ''}`}
+                  onClick={() => handleNavigation(item.id)}
+                >
                   <span className="nav-icon">{item.icon}</span>
                   <span className="nav-label">{item.label}</span>
                 </button>
@@ -44,7 +55,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         </nav>
 
         <div className="sidebar-footer">
-          <button className="nav-item logout-btn">
+          <button className="nav-item logout-btn" onClick={() => alert('Çıkış yapılıyor...')}>
             <span className="nav-icon">🚪</span>
             <span className="nav-label">Çıkış Yap</span>
           </button>
