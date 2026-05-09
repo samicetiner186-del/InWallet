@@ -21,8 +21,27 @@ const Portfolio: React.FC = () => {
   return (
     <div className="dashboard-grid">
       <div className="col-span-12 glass-card">
-        <div className="card-header">
-          <span className="card-title" style={{ fontSize: '24px' }}>Portföyüm</span>
+        <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '20px', marginBottom: '10px' }}>
+          <div>
+            <span className="card-title" style={{ fontSize: '24px', display: 'block', color: 'var(--text-secondary)' }}>Toplam Portföy Değeri</span>
+            <div className="heading-gradient" style={{ fontSize: '36px', fontWeight: 'bold', marginTop: '8px' }}>₺124,500.00</div>
+          </div>
+          
+          {/* Dynamic Overall Profit/Loss Indicator */}
+          <div style={{ 
+            background: '+%5.2'.startsWith('+') ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+            color: '+%5.2'.startsWith('+') ? 'var(--success)' : 'var(--danger)',
+            padding: '8px 16px',
+            borderRadius: '12px',
+            fontSize: '16px',
+            fontWeight: 700,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            boxShadow: '+%5.2'.startsWith('+') ? '0 0 15px rgba(16, 185, 129, 0.2)' : '0 0 15px rgba(239, 68, 68, 0.2)'
+          }}>
+            {'+%5.2'.startsWith('+') ? '▲' : '▼'} {'+%5.2'} (Genel)
+          </div>
         </div>
         
         {/* Trend Chart */}
