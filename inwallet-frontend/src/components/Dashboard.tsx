@@ -115,7 +115,71 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Scheduled Debts & Receivables */}
+      <div className="col-span-12">
+        <div className="dashboard-grid">
+          <div className="col-span-6 glass-card">
+            <div className="card-header">
+              <span className="card-title">Planlanmış Tarihli Borçlar</span>
+            </div>
+            <div style={{ marginTop: '15px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                <div>
+                  <div style={{ fontWeight: 500 }}>Konut Kredisi Taksiti</div>
+                  <div className="text-muted" style={{ fontSize: '0.85rem', marginTop: '4px' }}>15 Mayıs 2026</div>
+                </div>
+                <div className="text-danger" style={{ fontWeight: 'bold' }}>-₺12,500.00</div>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                <div>
+                  <div style={{ fontWeight: 500 }}>Kredi Kartı Ekstresi</div>
+                  <div className="text-muted" style={{ fontSize: '0.85rem', marginTop: '4px' }}>22 Mayıs 2026</div>
+                </div>
+                <div className="text-danger" style={{ fontWeight: 'bold' }}>-₺8,450.00</div>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0' }}>
+                <div>
+                  <div style={{ fontWeight: 500 }}>Araç Sigortası (Kasko)</div>
+                  <div className="text-muted" style={{ fontSize: '0.85rem', marginTop: '4px' }}>05 Haziran 2026</div>
+                </div>
+                <div className="text-danger" style={{ fontWeight: 'bold' }}>-₺4,200.00</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="col-span-6 glass-card">
+            <div className="card-header">
+              <span className="card-title">Planlanmış Tarihli Alacaklar</span>
+            </div>
+            <div style={{ marginTop: '15px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                <div>
+                  <div style={{ fontWeight: 500 }}>Freelance Proje Ödemesi</div>
+                  <div className="text-muted" style={{ fontSize: '0.85rem', marginTop: '4px' }}>12 Mayıs 2026</div>
+                </div>
+                <div className="text-success" style={{ fontWeight: 'bold' }}>+₺15,000.00</div>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                <div>
+                  <div style={{ fontWeight: 500 }}>Kira Geliri (Kadıköy Ev)</div>
+                  <div className="text-muted" style={{ fontSize: '0.85rem', marginTop: '4px' }}>20 Mayıs 2026</div>
+                </div>
+                <div className="text-success" style={{ fontWeight: 'bold' }}>+₺18,500.00</div>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0' }}>
+                <div>
+                  <div style={{ fontWeight: 500 }}>Hisse Temettü Ödemesi</div>
+                  <div className="text-muted" style={{ fontSize: '0.85rem', marginTop: '4px' }}>28 Mayıs 2026</div>
+                </div>
+                <div className="text-success" style={{ fontWeight: 'bold' }}>+₺3,250.00</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
       
+
       <FinancialGoalsModal 
         isOpen={isGoalsModalOpen} 
         onClose={() => setIsGoalsModalOpen(false)} 
