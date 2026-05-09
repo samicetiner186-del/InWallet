@@ -47,17 +47,17 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Main Content Area */}
-      <div className="col-span-7 glass-card" style={{ minHeight: '380px' }}>
+      <div className="col-span-7 glass-card" style={{ minHeight: '400px' }}>
         <div className="card-header">
           <span className="card-title">Portföy Dağılımı & Analiz</span>
         </div>
-        <div style={{ height: '320px', marginTop: '10px' }}>
+        <div style={{ height: '340px', marginTop: '10px' }}>
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
                 data={portfolioData}
                 cx="50%"
-                cy="45%"
+                cy="50%"
                 innerRadius={90}
                 outerRadius={130}
                 paddingAngle={5}
