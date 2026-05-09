@@ -25,7 +25,16 @@ const Dashboard: React.FC = () => {
               <span className="card-title">Toplam Net Varlık</span>
             </div>
             <div className="stat-value heading-gradient">₺124,500.00</div>
-            <div className={`stat-label ${'+5.2%'.startsWith('+') ? 'text-success' : 'text-danger'}`}>
+            <div style={{ 
+              display: 'inline-block',
+              background: '+5.2%'.startsWith('+') ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+              color: '+5.2%'.startsWith('+') ? 'var(--accent-green)' : 'var(--accent-red)',
+              padding: '6px 12px',
+              borderRadius: '12px',
+              fontSize: '14px',
+              fontWeight: 700,
+              marginTop: '4px'
+            }}>
               {'+5.2%'.startsWith('+') ? '▲' : '▼'} {'+5.2%'} bu ay
             </div>
           </div>
