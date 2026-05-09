@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import AssetChartModal from '../components/AssetChartModal';
 
 const data = [
   { name: 'Oca', value: 85000 },
@@ -11,6 +12,8 @@ const data = [
 ];
 
 const Portfolio: React.FC = () => {
+  const [selectedAsset, setSelectedAsset] = useState<any>(null);
+  
   const assets = [
     { name: 'Hisse Senedi (BIST 100)', amount: '₺55,000.00', profit: '+%8.4', color: '#00d2ff' },
     { name: 'Altın (Gram)', amount: '₺45,000.00', profit: '+%3.2', color: '#f59e0b' },
@@ -86,6 +89,7 @@ const Portfolio: React.FC = () => {
                 transition: 'transform 0.3s ease, background 0.3s ease',
                 cursor: 'pointer'
               }}
+              onClick={() => setSelectedAsset(asset)}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateX(8px)';
                 e.currentTarget.style.background = 'rgba(255,255,255,0.06)';
@@ -118,6 +122,12 @@ const Portfolio: React.FC = () => {
           ))}
         </div>
       </div>
+
+      <AssetChartModal 
+        isOpen={selectedAsset !== null} 
+        onClose={() => setSelectedAsset(null)} 
+        asset={selectedAsset} 
+      />
     </div>
   );
 };
