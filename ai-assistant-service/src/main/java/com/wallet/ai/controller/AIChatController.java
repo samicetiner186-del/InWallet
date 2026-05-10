@@ -7,10 +7,13 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/ai")
-@RequiredArgsConstructor
 public class AIChatController {
 
     private final AIAssistantService aiAssistantService;
+
+    public AIChatController(AIAssistantService aiAssistantService) {
+        this.aiAssistantService = aiAssistantService;
+    }
 
     @PostMapping("/chat")
     public ResponseEntity<String> chat(@RequestParam String message, @RequestParam Long userId) {

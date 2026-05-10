@@ -14,6 +14,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class AuthController {
 
     private final UserRepository userRepository;
@@ -56,7 +57,10 @@ public class AuthController {
                 new UsernamePasswordAuthenticationToken(req.get("username"), req.get("password"))
         );
 
-        String token = jwtUtil.generateToken(auth.getName());
+        User user = userRepository.findByUsername(auth.getName())
+                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı"));
+
+        String token = jwtUtil.generateToken(auth.getName(), user.getId());
         return ResponseEntity.ok(Map.of("token", token));
     }
 }

@@ -39,4 +39,8 @@ public class Goal {
 
     // Şu ana kadar hedefe ne kadar yaklaşıldı (%)
     private BigDecimal completionPercentage;
+
+    // Hedef tutar ve mevcut birikim
+    private BigDecimal targetAmount;
+    private BigDecimal currentAmount;
 }

@@ -12,12 +12,24 @@ import Transactions from './pages/Transactions';
 import Goals from './pages/Goals';
 import Settings from './pages/Settings';
 import Favorites from './pages/Favorites';
+import BudgetAnalysis from './pages/BudgetAnalysis';
+import DCAPlanner from './pages/DCAPlanner';
+import EmergencyFund from './pages/EmergencyFund';
 
 const AppContent: React.FC = () => {
   const { isLoggedIn, username, logout } = useAuth();
-  const [currentView, setCurrentView] = useState('dashboard');
+  
+  // Sayfa yenilendiğinde kalınan yerden devam etmesi için localStorage kullanımı
+  const [currentView, setCurrentView] = useState(() => {
+    return localStorage.getItem('inwallet_current_view') || 'dashboard';
+  });
+  
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isPrivacyMode, setIsPrivacyMode] = useState(false);
+
+  React.useEffect(() => {
+    localStorage.setItem('inwallet_current_view', currentView);
+  }, [currentView]);
 
   if (!isLoggedIn) return <LoginPage />;
 
@@ -28,6 +40,9 @@ const AppContent: React.FC = () => {
       case 'transactions': return <Transactions />;
       case 'goals': return <Goals />;
       case 'favorites': return <Favorites />;
+      case 'budget': return <BudgetAnalysis />;
+      case 'dca': return <DCAPlanner />;
+      case 'emergency': return <EmergencyFund />;
       case 'settings': return <Settings />;
       default: return <Dashboard />;
     }

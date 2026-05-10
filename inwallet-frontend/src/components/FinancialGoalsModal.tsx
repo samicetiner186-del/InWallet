@@ -1,28 +1,61 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './FinancialGoalsModal.css';
+import { goalApi } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 interface FinancialGoalsModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-const goals = [
-  { id: 1, title: 'Ev Peşinatı', target: 500000, current: 225000, inflationRate: 0.45 },
-  { id: 2, title: 'Araba (Enflasyon Ayarlı)', target: 300000, current: 36000, inflationRate: 0.12 }
-];
-
 const FinancialGoalsModal: React.FC<FinancialGoalsModalProps> = ({ isOpen, onClose }) => {
+  const { userId } = useAuth();
+  const [goals, setGoals] = useState<any[]>([]);
   const [newGoalTitle, setNewGoalTitle] = useState('');
   const [newGoalTarget, setNewGoalTarget] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (isOpen && userId) {
+      fetchGoals();
+    }
+  }, [isOpen, userId]);
+
+  const fetchGoals = async () => {
+    try {
+      const data = await goalApi.getGoals(userId!);
+      setGoals(data);
+    } catch (error) {
+      console.error('Hedefler çekilemedi:', error);
+    }
+  };
 
   if (!isOpen) return null;
 
-  const handleAddGoal = (e: React.FormEvent) => {
+  const handleAddGoal = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Geliştirmede buraya API çağrısı eklenecek
-    alert(`Yeni hedef eklendi: ${newGoalTitle} - ${newGoalTarget}`);
-    setNewGoalTitle('');
-    setNewGoalTarget('');
+    if (!userId) return;
+
+    const goalData = {
+      user: { id: Number(userId) },
+      name: newGoalTitle,
+      initialPrice: parseFloat(newGoalTarget),
+      targetAmount: parseFloat(newGoalTarget),
+      currentAmount: 0,
+      expectedInflationRate: 40, // Default enflasyon
+      targetDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString() // 1 yıl sonra
+    };
+
+    try {
+      await goalApi.createGoal(goalData);
+      setNewGoalTitle('');
+      setNewGoalTarget('');
+      fetchGoals(); // Listeyi yenile
+    } catch (error) {
+      alert('Hedef eklenirken hata oluştu.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -35,20 +68,20 @@ const FinancialGoalsModal: React.FC<FinancialGoalsModalProps> = ({ isOpen, onClo
         
         <div className="modal-body">
           <div className="goals-list">
-            {goals.map(goal => {
-              const progress = (goal.current / goal.target) * 100;
+            {goals.length > 0 ? goals.map(goal => {
+              const progress = ((goal.currentAmount || 0) / (goal.targetAmount || 1)) * 100;
               return (
                 <div key={goal.id} className="goal-item">
                   <div className="goal-info">
-                    <h4>{goal.title}</h4>
+                    <h4>{goal.name}</h4>
                     <span className="goal-stats">
-                      ₺{goal.current.toLocaleString()} / ₺{goal.target.toLocaleString()}
+                      ₺{(goal.currentAmount || 0).toLocaleString()} / ₺{(goal.targetAmount || 0).toLocaleString()}
                     </span>
                   </div>
                   <div className="goal-progress-bar">
                     <div 
                       className="goal-progress-fill" 
-                      style={{ width: `${progress}%` }}
+                      style={{ width: `${Math.min(100, progress)}%` }}
                     ></div>
                   </div>
                   <div className="goal-footer text-muted">
@@ -56,7 +89,9 @@ const FinancialGoalsModal: React.FC<FinancialGoalsModalProps> = ({ isOpen, onClo
                   </div>
                 </div>
               );
-            })}
+            }) : (
+              <p className="text-muted" style={{ textAlign: 'center', padding: '20px' }}>Henüz hedef eklenmemiş.</p>
+            )}
           </div>
 
           <form className="add-goal-form" onSubmit={handleAddGoal}>
@@ -79,7 +114,9 @@ const FinancialGoalsModal: React.FC<FinancialGoalsModalProps> = ({ isOpen, onClo
                 required 
               />
             </div>
-            <button type="submit" className="btn-primary">Hedef Ekle</button>
+            <button type="submit" className="btn-primary" disabled={loading}>
+              {loading ? 'Ekleniyor...' : 'Hedef Ekle'}
+            </button>
           </form>
         </div>
       </div>

@@ -11,6 +11,9 @@ interface SidebarProps {
 const menuItems = [
   { id: 'dashboard', icon: '🏠', label: 'Ana Sayfa', desc: 'Genel özet panosu', color: 'rgba(59, 130, 246, 0.2)', iconColor: '#3b82f6' },
   { id: 'portfolio', icon: '💼', label: 'Portföyüm', desc: 'Varlıklarınızı inceleyin', color: 'rgba(139, 92, 246, 0.2)', iconColor: '#8b5cf6' },
+  { id: 'budget', icon: '📊', label: 'Bütçe Analizi', desc: 'Gelir/Gider dengesi', color: 'rgba(16, 185, 129, 0.2)', iconColor: '#10b981' },
+  { id: 'dca', icon: '📈', label: 'DCA Planlayıcı', desc: 'Düzenli yatırım planı', color: 'rgba(99, 102, 241, 0.2)', iconColor: '#6366f1' },
+  { id: 'emergency', icon: '🛡️', label: 'Acil Durum Fonu', desc: 'Güvence kalkanınız', color: 'rgba(239, 68, 68, 0.2)', iconColor: '#ef4444' },
   { id: 'transactions', icon: '🔁', label: 'İşlem Geçmişi', desc: 'Gelir ve gider akışı', badge: 3, color: 'rgba(16, 185, 129, 0.2)', iconColor: '#10b981' },
   { id: 'goals', icon: '🎯', label: 'Hedeflerim', desc: 'Hayallerinizi planlayın', color: 'rgba(245, 158, 11, 0.2)', iconColor: '#f59e0b' },
   { id: 'favorites', icon: '⭐', label: 'Favoriler', desc: 'Sık kullanılan işlemler', color: 'rgba(250, 204, 21, 0.2)', iconColor: '#facc15' },
@@ -48,6 +51,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, currentView, onNavig
   };
 
   const dailyQuote = getDailyQuote();
+
+  const [theme, setTheme] = React.useState(localStorage.getItem('inwallet_theme') || 'dark');
+
+  React.useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('inwallet_theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+  };
 
   return (
     <>
@@ -158,8 +172,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, currentView, onNavig
         {/* Quick Actions Footer */}
         <div className="sidebar-footer">
           <div className="footer-actions">
-            <button className="quick-action-btn">
-              <span className="qa-icon">🌗</span>
+            <button className="quick-action-btn" onClick={toggleTheme}>
+              <span className="qa-icon">{theme === 'dark' ? '☀️' : '🌙'}</span>
               <span>Tema</span>
             </button>
             <button className="quick-action-btn">
