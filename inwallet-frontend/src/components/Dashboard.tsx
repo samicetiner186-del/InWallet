@@ -2,9 +2,6 @@ import React, { useState } from 'react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import FinancialGoalsModal from './FinancialGoalsModal';
 import ScheduledTransactionsModal from './ScheduledTransactionsModal';
-import SavingsRateModal from './SavingsRateModal';
-import FinancialHealthScore from './FinancialHealthScore';
-import EmergencyFundModal from './EmergencyFundModal';
 
 const portfolioData = [
   { name: 'Hisse Senedi', value: 55000, color: '#00d2ff' },
@@ -13,18 +10,9 @@ const portfolioData = [
   { name: 'Döviz', value: 10000, color: '#10b981' },
 ];
 
-const getProgressColor = (progress: number) => {
-  if (progress < 25) return 'var(--danger, #ef4444)';
-  if (progress < 60) return '#f59e0b';
-  if (progress < 85) return 'var(--accent-blue, #3b82f6)';
-  return 'var(--success, #10b981)';
-};
-
 const Dashboard: React.FC = () => {
   const [isGoalsModalOpen, setIsGoalsModalOpen] = useState(false);
   const [scheduledModalType, setScheduledModalType] = useState<'debt' | 'receivable' | null>(null);
-  const [isSavingsModalOpen, setIsSavingsModalOpen] = useState(false);
-  const [isEmergencyModalOpen, setIsEmergencyModalOpen] = useState(false);
 
   return (
     <div className="dashboard-grid">
@@ -34,19 +22,18 @@ const Dashboard: React.FC = () => {
         <div className="dashboard-grid">
           <div className="col-span-3 glass-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <div className="card-header">
-              <span className="card-title" style={{ fontSize: '14px' }}>Toplam Net Varlık</span>
+              <span className="card-title">Toplam Net Varlık</span>
             </div>
-            <div className="stat-value heading-gradient sensitive-data" style={{ fontSize: '24px' }}>₺124,500.00</div>
+            <div className="stat-value heading-gradient sensitive-data">₺124,500.00</div>
             <div style={{ 
               display: 'inline-block',
               background: '+5.2%'.startsWith('+') ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
               color: '+5.2%'.startsWith('+') ? 'var(--accent-green)' : 'var(--accent-red)',
-              padding: '4px 10px',
-              borderRadius: '8px',
-              fontSize: '12px',
+              padding: '6px 12px',
+              borderRadius: '12px',
+              fontSize: '14px',
               fontWeight: 700,
-              marginTop: '4px',
-              alignSelf: 'flex-start'
+              marginTop: '4px'
             }} className="sensitive-data">
               {'+5.2%'.startsWith('+') ? '▲' : '▼'} {'+5.2%'} bu ay
             </div>
@@ -56,8 +43,8 @@ const Dashboard: React.FC = () => {
             <div className="card-header">
               <span className="card-title" style={{ fontSize: '14px' }}>Aylık Gelir</span>
             </div>
-            <div className="stat-value sensitive-data" style={{ fontSize: '24px' }}>₺45,000.00</div>
-            <div className="stat-label text-muted" style={{ fontSize: '12px' }}>Sabit Maaş</div>
+            <div className="stat-value sensitive-data">₺45,000.00</div>
+            <div className="stat-label text-muted">Sabit Maaş</div>
           </div>
 
           <div className="col-span-3 glass-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
@@ -80,15 +67,13 @@ const Dashboard: React.FC = () => {
             <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px', overflow: 'hidden', marginTop: '8px', marginBottom: '6px' }}>
               <div style={{ width: '59.5%', height: '100%', background: 'var(--accent-green)', borderRadius: '3px' }}></div>
             </div>
-            <div className="stat-label text-muted" style={{ fontSize: '11px', lineHeight: '1.4' }}>Tıkla: Detaylar ve taktikler</div>
+            <div className="stat-value sensitive-data">₺18,200.00</div>
+            <div className="stat-label text-danger">Kredi & Faturalar</div>
           </div>
         </div>
       </div>
 
-      {/* Financial Health Score */}
-      <FinancialHealthScore />
-
-      {/* Scheduled Debts placeholder for spacing */}
+      {/* Main Content Area */}
       <div className="col-span-7 glass-card" style={{ minHeight: '400px' }}>
         <div className="card-header">
           <span className="card-title">Portföy Dağılımı & Analiz</span>
@@ -112,8 +97,8 @@ const Dashboard: React.FC = () => {
               </Pie>
               <Tooltip 
                 formatter={(value: number) => `₺${value.toLocaleString()}`}
-                contentStyle={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px' }}
-                itemStyle={{ color: 'var(--text-primary)' }}
+                contentStyle={{ background: 'rgba(15, 23, 42, 0.9)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
+                itemStyle={{ color: '#fff' }}
               />
               <Legend verticalAlign="bottom" height={36}/>
             </PieChart>
@@ -141,36 +126,9 @@ const Dashboard: React.FC = () => {
           </button>
         </div>
         <div style={{ marginBottom: '20px', marginTop: '15px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', alignItems: 'center' }}>
-            <span style={{ display: 'flex', alignItems: 'center', fontWeight: 600, fontSize: '15px', color: 'var(--text-primary)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(59, 130, 246, 0.12)', border: '1px solid rgba(59, 130, 246, 0.25)', marginRight: '14px', color: 'var(--accent-blue)', boxShadow: '0 4px 12px rgba(59, 130, 246, 0.08)' }}>
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-                  <polyline points="9 22 9 12 15 12 15 22"/>
-                </svg>
-              </div>
-              Ev Peşinatı
-            </span>
-            <span style={{ fontWeight: '500', fontSize: '14px', color: getProgressColor(45) }}>45%</span>
-          </div>
-          <div style={{ width: '100%', height: '6px', background: 'var(--bg-primary)', borderRadius: '3px', overflow: 'hidden' }}>
-            <div style={{ width: '45%', height: '100%', background: getProgressColor(45) }}></div>
-          </div>
-        </div>
-        <div style={{ marginBottom: '20px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', alignItems: 'center' }}>
-            <span style={{ display: 'flex', alignItems: 'center', fontWeight: 600, fontSize: '15px', color: 'var(--text-primary)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(96, 165, 250, 0.12)', border: '1px solid rgba(96, 165, 250, 0.25)', marginRight: '14px', color: 'var(--accent-neon-blue)', boxShadow: '0 4px 12px rgba(96, 165, 250, 0.08)' }}>
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/>
-                  <circle cx="7" cy="17" r="2.5"/>
-                  <path d="M9.5 17h5"/>
-                  <circle cx="17" cy="17" r="2.5"/>
-                </svg>
-              </div>
-              Araba (Enflasyon Ayarlı)
-            </span>
-            <span style={{ fontWeight: '500', fontSize: '14px', color: getProgressColor(12) }}>12%</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+            <span>Ev Peşinatı</span>
+            <span className="text-muted">45%</span>
           </div>
           <div style={{ width: '100%', height: '6px', background: 'var(--bg-primary)', borderRadius: '3px', overflow: 'hidden' }}>
             <div style={{ width: '12%', height: '100%', background: getProgressColor(12) }}></div>
@@ -332,6 +290,77 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Scheduled Debts & Receivables */}
+      <div className="col-span-12">
+        <div className="dashboard-grid">
+          <div 
+            className="col-span-6 glass-card interactive-card" 
+            style={{ cursor: 'pointer', padding: '20px' }}
+            onClick={() => setScheduledModalType('debt')}
+          >
+            <div className="card-header">
+              <span className="card-title">Planlanmış Tarihli Borçlar</span>
+            </div>
+            <div style={{ marginTop: '15px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                <div>
+                  <div style={{ fontWeight: 500, fontSize: '0.95rem' }}>Konut Kredisi Taksiti</div>
+                  <div className="text-muted" style={{ fontSize: '0.8rem', marginTop: '2px' }}>15 Mayıs 2026</div>
+                </div>
+                <div className="text-danger sensitive-data" style={{ fontWeight: 'bold' }}>-₺12,500.00</div>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                <div>
+                  <div style={{ fontWeight: 500, fontSize: '0.95rem' }}>Kredi Kartı Ekstresi</div>
+                  <div className="text-muted" style={{ fontSize: '0.8rem', marginTop: '2px' }}>22 Mayıs 2026</div>
+                </div>
+                <div className="text-danger sensitive-data" style={{ fontWeight: 'bold' }}>-₺8,450.00</div>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0' }}>
+                <div>
+                  <div style={{ fontWeight: 500, fontSize: '0.95rem' }}>Araç Sigortası</div>
+                  <div className="text-muted" style={{ fontSize: '0.8rem', marginTop: '2px' }}>05 Haziran 2026</div>
+                </div>
+                <div className="text-danger sensitive-data" style={{ fontWeight: 'bold' }}>-₺4,200.00</div>
+              </div>
+            </div>
+          </div>
+
+          <div 
+            className="col-span-6 glass-card interactive-card" 
+            style={{ cursor: 'pointer', padding: '20px' }}
+            onClick={() => setScheduledModalType('receivable')}
+          >
+            <div className="card-header">
+              <span className="card-title">Planlanmış Tarihli Alacaklar</span>
+            </div>
+            <div style={{ marginTop: '15px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                <div>
+                  <div style={{ fontWeight: 500, fontSize: '0.95rem' }}>Freelance Proje</div>
+                  <div className="text-muted" style={{ fontSize: '0.8rem', marginTop: '2px' }}>12 Mayıs 2026</div>
+                </div>
+                <div className="text-success sensitive-data" style={{ fontWeight: 'bold' }}>+₺15,000.00</div>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                <div>
+                  <div style={{ fontWeight: 500, fontSize: '0.95rem' }}>Kira Geliri</div>
+                  <div className="text-muted" style={{ fontSize: '0.8rem', marginTop: '2px' }}>20 Mayıs 2026</div>
+                </div>
+                <div className="text-success sensitive-data" style={{ fontWeight: 'bold' }}>+₺18,500.00</div>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0' }}>
+                <div>
+                  <div style={{ fontWeight: 500, fontSize: '0.95rem' }}>Temettü Ödemesi</div>
+                  <div className="text-muted" style={{ fontSize: '0.8rem', marginTop: '2px' }}>28 Mayıs 2026</div>
+                </div>
+                <div className="text-success sensitive-data" style={{ fontWeight: 'bold' }}>+₺3,250.00</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
       
       <FinancialGoalsModal 
         isOpen={isGoalsModalOpen} 
@@ -341,14 +370,6 @@ const Dashboard: React.FC = () => {
         isOpen={scheduledModalType !== null}
         onClose={() => setScheduledModalType(null)}
         type={scheduledModalType}
-      />
-      <SavingsRateModal
-        isOpen={isSavingsModalOpen}
-        onClose={() => setIsSavingsModalOpen(false)}
-      />
-      <EmergencyFundModal
-        isOpen={isEmergencyModalOpen}
-        onClose={() => setIsEmergencyModalOpen(false)}
       />
     </div>
   );

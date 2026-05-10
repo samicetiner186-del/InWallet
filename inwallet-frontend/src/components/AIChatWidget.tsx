@@ -1,22 +1,13 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import './AIChatWidget.css';
-
-interface Message {
-  id: string;
-  sender: 'ai' | 'user' | 'error';
-  text: string;
-  time: string;
-}
+import { aiApi } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const AIChatWidget: React.FC = () => {
+  const { userId } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
-    { 
-      id: '1', 
-      sender: 'ai', 
-      text: 'Merhaba! Ben InWallet AI. Portföy analizi, piyasa trendleri veya finansal hedeflerinizle ilgili size nasıl yardımcı olabilirim?',
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    }
+  const [messages, setMessages] = useState<{sender: 'ai'|'user'|'error', text: string}[]>([
+    { sender: 'ai', text: 'Merhaba! Ben InWallet Asistanı. Cüzdanınızı analiz edebilir veya yatırım hedefleriniz hakkında tavsiye verebilirim.' }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -44,30 +35,15 @@ const AIChatWidget: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`http://localhost:8081/api/ai/chat?message=${encodeURIComponent(userText)}&userId=1`, {
-        method: 'POST'
-      });
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      const data = await response.text();
-      setMessages(prev => [...prev, { 
-        id: (Date.now() + 1).toString(), 
-        sender: 'ai', 
-        text: data,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      }]);
-    } catch (error) {
-      setMessages(prev => [...prev, { 
-        id: (Date.now() + 1).toString(), 
-        sender: 'error', 
-        text: 'Bağlantı hatası: AI sunucusuna şu an ulaşılamıyor. Lütfen daha sonra tekrar deneyin.',
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      }]);
+      const data = await aiApi.chat(userId ?? 1, userText);
+      setMessages(prev => [...prev, { sender: 'ai', text: data }]);
+    } catch {
+      setMessages(prev => [...prev, { sender: 'error', text: 'Bağlantı hatası: AI Asistan servisine ulaşılamıyor. Lütfen backend\'in çalıştığından emin olun.' }]);
     } finally {
       setIsLoading(false);
     }
   };
+
 
   return (
     <div className="ai-chat-wrapper">

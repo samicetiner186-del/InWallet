@@ -30,14 +30,14 @@
   display: flex;
   flex-direction: column;
   padding: 0;
-  transition: left 0.4s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.4s ease;
+  transition: left 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+  box-shadow: 20px 0 50px rgba(0, 0, 0, 0.5);
   overflow-y: auto;
   overflow-x: hidden;
 }
 
 .sidebar-drawer.open {
   left: 0;
-  box-shadow: 20px 0 50px rgba(0, 0, 0, 0.5);
 }
 
 /* Sidebar Brand */
@@ -362,63 +362,4 @@
 
 .logout-btn:hover {
   background: rgba(239, 68, 68, 0.05);
-}
-
-/* Light Theme Overrides */
-[data-theme="light"] .sidebar-drawer {
-  background: rgba(255, 255, 255, 0.98);
-  border-right: 1px solid rgba(0, 0, 0, 0.08);
-}
-
-[data-theme="light"] .sidebar-profile,
-[data-theme="light"] .sidebar-footer {
-  border-color: rgba(0, 0, 0, 0.05);
-}
-
-[data-theme="light"] .profile-name,
-[data-theme="light"] .wallet-amount {
-  color: var(--text-primary);
-}
-
-[data-theme="light"] .sidebar-quote-card {
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.02) 0%, transparent 100%);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-[data-theme="light"] .quote-text {
-  color: var(--text-secondary);
-}
-
-[data-theme="light"] .sidebar-wallet-card {
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.02), rgba(0, 0, 0, 0.01));
-  border: 1px solid rgba(0, 0, 0, 0.08);
-}
-
-[data-theme="light"] .nav-item:hover {
-  background: rgba(0, 0, 0, 0.04);
-}
-
-[data-theme="light"] .nav-label {
-  background: linear-gradient(135deg, #1E3A8A 0%, #0F172A 50%, #1D4ED8 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  filter: none;
-}
-
-[data-theme="light"] .nav-item:hover .nav-label,
-[data-theme="light"] .nav-item.active .nav-label {
-  background: linear-gradient(135deg, #1E40AF 0%, #1D4ED8 50%, #3B82F6 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 4px rgba(59, 130, 246, 0.3));
-}
-
-[data-theme="light"] .quick-action-btn {
-  background: rgba(0, 0, 0, 0.03);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-[data-theme="light"] .quick-action-btn:hover {
-  background: rgba(0, 0, 0, 0.06);
-  color: var(--text-primary);
 }
