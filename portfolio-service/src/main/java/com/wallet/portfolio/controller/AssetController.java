@@ -11,6 +11,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/assets")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class AssetController {
 
     private final AssetService assetService;

@@ -25,7 +25,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // JWT payload'ını decode et (base64)
         const payload = JSON.parse(atob(token.split('.')[1]));
         setUsername(payload.sub);
-        setUserId(1); // Geliştirme aşamasında userId=1, ileride /api/me endpoint'i ile alınacak
+        setUserId(payload.userId);
         setIsLoggedIn(true);
       } catch {
         authApi.logout();
@@ -39,7 +39,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const token = getToken()!;
     const payload = JSON.parse(atob(token.split('.')[1]));
     setUsername(payload.sub);
-    setUserId(1);
+    setUserId(payload.userId);
     setIsLoggedIn(true);
   };
 

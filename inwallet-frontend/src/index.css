@@ -134,3 +134,53 @@ a:hover {
   user-select: none;
   pointer-events: none;
 }
+
+/* Market Ticker Styles */
+.market-ticker-container {
+  width: 100%;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid var(--border-color);
+  padding: 8px 0;
+  display: flex;
+  align-items: center;
+}
+
+.market-ticker-content {
+  display: flex;
+  white-space: nowrap;
+  animation: ticker 30s linear infinite;
+  padding-left: 100%;
+}
+
+.ticker-item {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 40px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.ticker-symbol {
+  color: var(--text-primary);
+  font-weight: 700;
+  margin-right: 8px;
+}
+
+.ticker-price {
+  margin-right: 8px;
+}
+
+.ticker-change {
+  font-weight: 600;
+}
+
+@keyframes ticker {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-100%, 0, 0); }
+}
+
+.market-ticker-container:hover .market-ticker-content {
+  animation-play-state: paused;
+}

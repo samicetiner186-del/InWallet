@@ -111,3 +111,12 @@ export const aiApi = {
     return res.text();
   },
 };
+
+// ─── Market Data Endpoint ────────────────────────────────
+export const marketApi = {
+  getPrices: async () => {
+    const res = await fetch(`${BASE_URL}/api/market/prices`);
+    if (!res.ok) throw new Error('Piyasa verileri alınamadı.');
+    return res.json();
+  },
+};
