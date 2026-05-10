@@ -1,7 +1,10 @@
 import { useState } from 'react';
-import './AIChatWidget.css'; // Özel CSS eklenecek
+import './AIChatWidget.css';
+import { aiApi } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const AIChatWidget: React.FC = () => {
+  const { userId } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<{sender: 'ai'|'user'|'error', text: string}[]>([
     { sender: 'ai', text: 'Merhaba! Ben InWallet Asistanı. Cüzdanınızı analiz edebilir veya yatırım hedefleriniz hakkında tavsiye verebilirim.' }
@@ -21,22 +24,15 @@ const AIChatWidget: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // Agentic AI Backend (8081) portuna istek
-      // Şimdilik mock UserId 1 olarak gönderiyoruz.
-      const response = await fetch(`http://localhost:8081/api/ai/chat?message=${encodeURIComponent(userText)}&userId=1`, {
-        method: 'POST'
-      });
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      const data = await response.text();
+      const data = await aiApi.chat(userId ?? 1, userText);
       setMessages(prev => [...prev, { sender: 'ai', text: data }]);
-    } catch (error) {
-      setMessages(prev => [...prev, { sender: 'error', text: 'Bağlantı hatası: Asistan servisine (8081) ulaşılamıyor. Lütfen backendin açık olduğundan emin olun.' }]);
+    } catch {
+      setMessages(prev => [...prev, { sender: 'error', text: 'Bağlantı hatası: AI Asistan servisine ulaşılamıyor. Lütfen backend\'in çalıştığından emin olun.' }]);
     } finally {
       setIsLoading(false);
     }
   };
+
 
   return (
     <div className="ai-chat-wrapper">

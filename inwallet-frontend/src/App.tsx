@@ -3,6 +3,8 @@ import './App.css';
 import Dashboard from './components/Dashboard';
 import AIChatWidget from './components/AIChatWidget';
 import Sidebar from './components/Sidebar';
+import LoginPage from './pages/LoginPage';
+import { AuthProvider, useAuth } from './context/AuthContext';
 
 // Pages
 import Portfolio from './pages/Portfolio';
@@ -11,10 +13,13 @@ import Goals from './pages/Goals';
 import Settings from './pages/Settings';
 import Favorites from './pages/Favorites';
 
-const App: React.FC = () => {
+const AppContent: React.FC = () => {
+  const { isLoggedIn, username, logout } = useAuth();
   const [currentView, setCurrentView] = useState('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isPrivacyMode, setIsPrivacyMode] = useState(false);
+
+  if (!isLoggedIn) return <LoginPage />;
 
   const renderView = () => {
     switch(currentView) {
@@ -126,8 +131,10 @@ const App: React.FC = () => {
             </div>
           </div>
           <div className="user-profile">
-            <div className="text-muted">Hoş Geldiniz, Sami</div>
-            <div className="avatar">SE</div>
+            <div className="text-muted">Hoş Geldiniz, {username || 'Kullanıcı'}</div>
+            <div className="avatar" style={{ cursor: 'pointer' }} onClick={logout} title="Çıkış Yap">
+              {username ? username.slice(0, 2).toUpperCase() : 'IW'}
+            </div>
           </div>
         </header>
         
@@ -140,5 +147,11 @@ const App: React.FC = () => {
     </>
   );
 }
+
+const App: React.FC = () => (
+  <AuthProvider>
+    <AppContent />
+  </AuthProvider>
+);
 
 export default App;
