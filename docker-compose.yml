@@ -1,9 +1,11 @@
-version: '3.8'
-
 services:
+
+  # =============================================
+  # ALTYAPI SERVİSLERİ
+  # =============================================
   postgres:
     image: postgres:15-alpine
-    container_name: wallet-postgres
+    container_name: inwallet-postgres
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
@@ -13,30 +15,40 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - wallet-network
+      - inwallet-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d wallet_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:7-alpine
-    container_name: wallet-redis
+    container_name: inwallet-redis
     ports:
       - "6379:6379"
     networks:
-      - wallet-network
+      - inwallet-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.4.0
-    container_name: wallet-zookeeper
+    container_name: inwallet-zookeeper
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
     ports:
       - "2181:2181"
     networks:
-      - wallet-network
+      - inwallet-network
 
   kafka:
     image: confluentinc/cp-kafka:7.4.0
-    container_name: wallet-kafka
+    container_name: inwallet-kafka
     depends_on:
       - zookeeper
     ports:
@@ -48,27 +60,66 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
     networks:
-      - wallet-network
+      - inwallet-network
 
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.10.2
-    container_name: wallet-elasticsearch
-    environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=false
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+  # =============================================
+  # UYGULAMA SERVİSLERİ
+  # =============================================
+  portfolio-service:
+    build:
+      context: ./portfolio-service
+      dockerfile: Dockerfile
+    container_name: inwallet-portfolio
     ports:
-      - "9200:9200"
-    volumes:
-      - elasticsearch_data:/usr/share/elasticsearch/data
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/wallet_db
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_started
     networks:
-      - wallet-network
+      - inwallet-network
+
+  ai-assistant-service:
+    build:
+      context: ./ai-assistant-service
+      dockerfile: Dockerfile
+    container_name: inwallet-ai
+    ports:
+      - "8081:8081"
+    environment:
+      PORTFOLIO_SERVICE_URL: http://portfolio-service:8080
+    depends_on:
+      - portfolio-service
+    networks:
+      - inwallet-network
+
+  inwallet-frontend:
+    build:
+      context: ./inwallet-frontend
+      dockerfile: Dockerfile
+    container_name: inwallet-frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - portfolio-service
+      - ai-assistant-service
+    networks:
+      - inwallet-network
 
 volumes:
   postgres_data:
-  elasticsearch_data:
 
 networks:
-  wallet-network:
+  inwallet-network:
     driver: bridge
