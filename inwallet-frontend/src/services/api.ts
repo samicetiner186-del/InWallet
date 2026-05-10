@@ -65,6 +65,15 @@ export const assetApi = {
     if (!res.ok) throw new Error('Varlık eklenemedi.');
     return res.json();
   },
+
+  deleteAsset: async (assetId: number) => {
+    const res = await fetch(`${BASE_URL}/api/assets/${assetId}`, {
+      method: 'DELETE',
+      headers: authHeaders(),
+    });
+    if (!res.ok) throw new Error('Varlık silinemedi.');
+    return true;
+  },
 };
 
 export const transactionApi = {
@@ -100,6 +109,15 @@ export const goalApi = {
     });
     if (!res.ok) throw new Error('Hedef oluşturulamadı.');
     return res.json();
+  },
+
+  deleteGoal: async (goalId: number) => {
+    const res = await fetch(`${BASE_URL}/api/goals/${goalId}`, {
+      method: 'DELETE',
+      headers: authHeaders(),
+    });
+    if (!res.ok) throw new Error('Hedef silinemedi.');
+    return true;
   },
 };
 

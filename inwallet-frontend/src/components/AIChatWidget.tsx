@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import './AIChatWidget.css';
 import { aiApi } from '../services/api';
 import { useAuth } from '../context/AuthContext';

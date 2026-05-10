@@ -1,61 +1,56 @@
-import React, { useState } from 'react';
-
-const monthlyExpense = 18200;
-const currentFund = 21840;
-const targetMonths = 6;
-const targetAmount = monthlyExpense * targetMonths;
-const monthsCovered = +(currentFund / monthlyExpense).toFixed(1);
-const percent = Math.min(100, Math.round((currentFund / targetAmount) * 100));
-const remaining = targetAmount - currentFund;
-
-const milestones = [
-  { months: 1, label: '1 Ay', amount: monthlyExpense * 1 },
-  { months: 3, label: '3 Ay', amount: monthlyExpense * 3 },
-  { months: 6, label: '6 Ay', amount: monthlyExpense * 6 },
-];
-
-const plans = [
-  { label: 'Aylık 5.000₺ ek tasarruf', extra: 5000, color: '#60a5fa' },
-  { label: 'Aylık 10.000₺ ek tasarruf', extra: 10000, color: '#10b981' },
-  { label: 'Freelance gelirinden (15.000₺)', extra: 15000, color: '#a78bfa' },
-];
-
-const risks = [
-  {
-    icon: '💼',
-    title: 'İş Kaybı',
-    desc: 'Fonunuz 1.2 aylık giderinizi karşılıyor. İş kaybı durumunda sadece 36 gün hayatta kalabilirsiniz.',
-    severity: 'high',
-  },
-  {
-    icon: '🏥',
-    title: 'Sağlık Acili',
-    desc: 'Beklenmedik bir ameliyat veya tedavi masrafı portföyünüzü likide etmenizi gerektirebilir.',
-    severity: 'high',
-  },
-  {
-    icon: '🚗',
-    title: 'Araç / Konut Arızası',
-    desc: 'Büyük onarım masrafları acil fon olmadan kredi yüküne dönüşür.',
-    severity: 'medium',
-  },
-];
-
-const severityColors: Record<string, string> = {
-  high: '#ef4444',
-  medium: '#f59e0b',
-  low: '#10b981',
-};
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { userApi, assetApi } from '../services/api';
 
 const EmergencyFund: React.FC = () => {
-  const [fundAmount, setFundAmount] = useState(currentFund);
+  const { userId } = useAuth();
+  const [userData, setUserData] = useState<any>(null);
+  const [assets, setAssets] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const dynamicMonths = +(fundAmount / monthlyExpense).toFixed(1);
-  const dynamicPercent = Math.min(100, Math.round((fundAmount / targetAmount) * 100));
+  useEffect(() => {
+    if (!userId) return;
+    const fetchData = async () => {
+      try {
+        const [uData, aData] = await Promise.all([
+          userApi.getMe(userId),
+          assetApi.getAssets(userId)
+        ]);
+        setUserData(uData);
+        setAssets(aData);
+      } catch (err) {
+        console.error("Veri yüklenemedi:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [userId]);
+
+  if (loading) return <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>Veriler yükleniyor...</div>;
+
+  const monthlyExpense = userData?.monthlyExpense || 0;
+  
+  // Nakit varlıkları veya toplam varlığın bir kısmını fon olarak kabul et
+  const currentFund = assets
+    .filter(a => a.type.toLowerCase().includes('nakit') || a.type.toLowerCase().includes('mevduat'))
+    .reduce((sum, a) => sum + (a.quantity * (a.currentPrice || a.averageBuyPrice || 0)), 0);
+
+  const targetMonths = 6;
+  const targetAmount = monthlyExpense * targetMonths;
+  const dynamicMonths = monthlyExpense > 0 ? +(currentFund / monthlyExpense).toFixed(1) : 0;
+  const dynamicPercent = targetAmount > 0 ? Math.min(100, Math.round((currentFund / targetAmount) * 100)) : 0;
+
   const statusColor =
     dynamicMonths < 1 ? '#ef4444' :
     dynamicMonths < 3 ? '#f59e0b' :
     dynamicMonths < 6 ? '#60a5fa' : '#10b981';
+
+  const milestones = [
+    { months: 1, label: '1 Ay', amount: monthlyExpense * 1 },
+    { months: 3, label: '3 Ay', amount: monthlyExpense * 3 },
+    { months: 6, label: '6 Ay', amount: monthlyExpense * 6 },
+  ];
 
   return (
     <div className="dashboard-grid">
@@ -83,7 +78,8 @@ const EmergencyFund: React.FC = () => {
                 <div>
                   <h2 style={{ margin: 0, fontSize: '24px', fontWeight: 800, color: '#fff' }}>Acil Durum Fonu</h2>
                   <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', marginTop: '3px' }}>
-                    {dynamicMonths < 3 ? '⚠️ Risk altındasın — harekete geç!' : dynamicMonths < 6 ? '📈 İyi gidiyorsun, devam et!' : '🎉 Tebrikler! Finansal güvencedesin.'}
+                    {monthlyExpense === 0 ? 'Lütfen profilinizden aylık giderinizi tanımlayın.' : 
+                     dynamicMonths < 3 ? '⚠️ Risk altındasın — harekete geç!' : dynamicMonths < 6 ? '📈 İyi gidiyorsun, devam et!' : '🎉 Tebrikler! Finansal güvencedesin.'}
                   </div>
                 </div>
               </div>
@@ -94,7 +90,7 @@ const EmergencyFund: React.FC = () => {
                   <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.5)', marginTop: '6px' }}>Aylık gider karşılığı</div>
                 </div>
                 <div style={{ borderLeft: '1px solid rgba(255,255,255,0.1)', paddingLeft: '40px' }}>
-                  <div style={{ fontSize: '28px', fontWeight: 700, color: '#fff' }}>₺{fundAmount.toLocaleString()}</div>
+                  <div style={{ fontSize: '28px', fontWeight: 700, color: '#fff' }}>₺{currentFund.toLocaleString()}</div>
                   <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.5)', marginTop: '6px' }}>Mevcut fon</div>
                 </div>
                 <div style={{ borderLeft: '1px solid rgba(255,255,255,0.1)', paddingLeft: '40px' }}>
@@ -124,7 +120,7 @@ const EmergencyFund: React.FC = () => {
             {/* Milestone Labels */}
             {milestones.map(ms => {
               const pct = (ms.months / targetMonths) * 100;
-              const reached = fundAmount >= ms.amount;
+              const reached = currentFund >= ms.amount;
               return (
                 <div key={ms.months} style={{ position: 'absolute', left: `${pct}%`, top: 0, transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}>
                   <span style={{ fontSize: '11px', fontWeight: 700, color: reached ? statusColor : 'var(--text-secondary)', whiteSpace: 'nowrap' }}>{ms.label}</span>
@@ -144,7 +140,7 @@ const EmergencyFund: React.FC = () => {
               }} />
               {milestones.map(ms => {
                 const pct = (ms.months / targetMonths) * 100;
-                const reached = fundAmount >= ms.amount;
+                const reached = currentFund >= ms.amount;
                 return (
                   <div key={ms.months} style={{
                     position: 'absolute', left: `${pct}%`, top: '50%',
@@ -163,156 +159,13 @@ const EmergencyFund: React.FC = () => {
         </div>
       </div>
 
-      {/* Interactive Simulator */}
-      <div className="col-span-5 glass-card animate-slide-up" style={{ animationDelay: '0.1s' }}>
-        <div style={{ marginBottom: '20px', paddingBottom: '16px', borderBottom: '1px solid var(--border-color)' }}>
-          <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={statusColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/>
-            </svg>
-            Fon Simülatörü
-          </h3>
-          <p style={{ margin: '6px 0 0', fontSize: '13px', color: 'var(--text-secondary)' }}>Kaydırıcıyla farklı senaryoları simüle et</p>
-        </div>
-
-        <div style={{ marginBottom: '24px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-            <label style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-secondary)' }}>Mevcut Fon Tutarı</label>
-            <span style={{ fontSize: '16px', fontWeight: 800, color: statusColor }}>₺{fundAmount.toLocaleString()}</span>
-          </div>
-          <input
-            type="range"
-            min={0}
-            max={targetAmount}
-            step={1000}
-            value={fundAmount}
-            onChange={e => setFundAmount(Number(e.target.value))}
-            style={{ width: '100%', accentColor: statusColor }}
-          />
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-secondary)', marginTop: '6px' }}>
-            <span>₺0</span><span>₺{targetAmount.toLocaleString()}</span>
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {[
-            { label: 'Aylık Gider Karşılığı', value: `${dynamicMonths} Ay`, color: statusColor },
-            { label: 'Hedefe Kalan', value: `₺${Math.max(0, targetAmount - fundAmount).toLocaleString()}`, color: 'var(--text-primary)' },
-            { label: 'Tamamlama Oranı', value: `%${dynamicPercent}`, color: statusColor },
-          ].map(item => (
-            <div key={item.label} style={{
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              padding: '14px 16px',
-              background: 'var(--bg-secondary)',
-              borderRadius: '10px',
-              border: '1px solid var(--border-color)',
-            }}>
-              <span style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 500 }}>{item.label}</span>
-              <span style={{ fontSize: '15px', fontWeight: 800, color: item.color }}>{item.value}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Action Plans */}
-      <div className="col-span-7 glass-card animate-slide-up" style={{ animationDelay: '0.15s' }}>
-        <div style={{ marginBottom: '20px', paddingBottom: '16px', borderBottom: '1px solid var(--border-color)' }}>
-          <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-            </svg>
-            Hızlı Büyütme Planları
-          </h3>
-          <p style={{ margin: '6px 0 0', fontSize: '13px', color: 'var(--text-secondary)' }}>Hedefe ulaşmak için farklı senaryolar</p>
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          {plans.map(plan => {
-            const months = Math.ceil(Math.max(0, targetAmount - fundAmount) / plan.extra);
-            return (
-              <div key={plan.label} style={{
-                padding: '18px 20px',
-                background: `${plan.color}08`,
-                border: `1px solid ${plan.color}25`,
-                borderRadius: '14px',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: plan.color, boxShadow: `0 0 8px ${plan.color}60` }} />
-                  <span style={{ fontSize: '14px', color: 'var(--text-secondary)', fontWeight: 500 }}>{plan.label}</span>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: '18px', fontWeight: 800, color: plan.color }}>
-                    {months <= 0 ? '✅ Tamam!' : `${months} Ay`}
-                  </div>
-                  <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                    {months <= 0 ? 'Hedefe ulaşıldı' : 'hedefe ulaşırsın'}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Why It Matters */}
-        <div style={{
-          marginTop: '20px',
-          padding: '18px 20px',
-          background: 'rgba(239,68,68,0.06)',
-          border: '1px solid rgba(239,68,68,0.15)',
-          borderRadius: '14px',
-          display: 'flex',
-          gap: '14px',
-          alignItems: 'flex-start',
-        }}>
-          <div style={{ fontSize: '28px', lineHeight: 1 }}>🛡️</div>
-          <div>
-            <strong style={{ color: 'var(--text-primary)', fontSize: '14px', display: 'block', marginBottom: '6px' }}>Neden kritik?</strong>
-            <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '13px', lineHeight: '1.6' }}>
-              Acil durum fonu olmadan beklenmedik bir gelir kesilmesi veya büyük masraf,
-              <strong style={{ color: '#ef4444' }}> yatırımlarını en kötü zamanda satmana</strong> yol açar.
-              Bu "davranışsal finans tuzağı" en iyi portföyleri bile mahveder.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Risk Analysis */}
-      <div className="col-span-12 glass-card animate-slide-up" style={{ animationDelay: '0.2s' }}>
-        <div style={{ marginBottom: '20px', paddingBottom: '16px', borderBottom: '1px solid var(--border-color)' }}>
-          <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
-            </svg>
-            Risk Senaryoları (Mevcut Fonla)
-          </h3>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
-          {risks.map(risk => (
-            <div key={risk.title} style={{
-              padding: '20px',
-              background: `${severityColors[risk.severity]}06`,
-              border: `1px solid ${severityColors[risk.severity]}20`,
-              borderTop: `4px solid ${severityColors[risk.severity]}`,
-              borderRadius: '14px',
-            }}>
-              <div style={{ fontSize: '32px', marginBottom: '12px' }}>{risk.icon}</div>
-              <h4 style={{ margin: '0 0 8px', fontSize: '15px', color: 'var(--text-primary)', fontWeight: 700 }}>{risk.title}</h4>
-              <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.55' }}>{risk.desc}</p>
-              <div style={{
-                display: 'inline-block', marginTop: '14px',
-                fontSize: '11px', fontWeight: 700, padding: '4px 10px', borderRadius: '20px',
-                background: `${severityColors[risk.severity]}15`,
-                color: severityColors[risk.severity],
-                border: `1px solid ${severityColors[risk.severity]}25`,
-              }}>
-                {risk.severity === 'high' ? '🔴 Yüksek Risk' : risk.severity === 'medium' ? '🟡 Orta Risk' : '🟢 Düşük Risk'}
-              </div>
-            </div>
-          ))}
-        </div>
+      <div className="col-span-12 glass-card animate-slide-up" style={{ padding: '40px', textAlign: 'center' }}>
+        <h3 style={{ color: 'var(--text-primary)', marginBottom: '16px' }}>🛡️ Acil Durum Fonu Analizi</h3>
+        <p style={{ color: 'var(--text-secondary)', maxWidth: '800px', margin: '0 auto', lineHeight: '1.6' }}>
+          Acil durum fonu, iş kaybı, sağlık sorunları veya beklenmedik büyük masraflar karşısında finansal güvenliğinizi sağlar. 
+          İdeal bir fon, aylık giderlerinizin en az <strong>6 katını</strong> kapsamalıdır. 
+          Şu anki birikimlerinizle <strong>{dynamicMonths} aylık</strong> giderinizi karşılayabiliyorsunuz.
+        </p>
       </div>
 
     </div>

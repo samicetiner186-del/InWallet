@@ -1,27 +1,41 @@
-import React, { useState } from 'react';
-
-const allTransactions = [
-  { id: 1, title: 'Kira Ödemesi', date: '01 Mayıs 2026', amount: '-₺12,000.00', type: 'expense' },
-  { id: 2, title: 'Maaş Yatma', date: '01 Mayıs 2026', amount: '+₺45,000.00', type: 'income' },
-  { id: 3, title: 'Altın Alış (10gr)', date: '28 Nisan 2026', amount: '-₺24,500.00', type: 'investment' },
-  { id: 4, title: 'Market Harcaması', date: '25 Nisan 2026', amount: '-₺1,250.00', type: 'expense' },
-  { id: 5, title: 'Hisse Senedi Satış', date: '20 Nisan 2026', amount: '+₺5,400.00', type: 'income' },
-];
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { transactionApi } from '../services/api';
 
 const Transactions: React.FC = () => {
+  const { userId } = useAuth();
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'income' | 'expense'>('all');
 
-  const filteredTransactions = allTransactions.filter(tx => {
+  useEffect(() => {
+    if (!userId) return;
+    const fetchTransactions = async () => {
+      try {
+        const data = await transactionApi.getTransactions(userId);
+        setTransactions(data);
+      } catch (err) {
+        console.error("İşlemler yüklenemedi:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTransactions();
+  }, [userId]);
+
+  const filteredTransactions = transactions.filter(tx => {
     if (filter === 'all') return true;
     if (filter === 'income') return tx.type === 'income';
     if (filter === 'expense') return tx.type === 'expense' || tx.type === 'investment';
     return true;
   });
 
+  if (loading) return <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>İşlemler yükleniyor...</div>;
+
   return (
     <div className="dashboard-grid">
       <div className="col-span-12 glass-card">
-        <div className="card-header" style={{ marginBottom: '30px' }}>
+        <div className="card-header" style={{ marginBottom: '30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span className="card-title" style={{ fontSize: '24px' }}>İşlem Geçmişi</span>
           
           {/* Filters */}
@@ -61,7 +75,7 @@ const Transactions: React.FC = () => {
         
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {filteredTransactions.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>Bu kategoride işlem bulunmuyor.</div>
+            <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>Henüz bir işlem kaydı bulunmuyor.</div>
           ) : (
             filteredTransactions.map(tx => (
               <div 
@@ -77,8 +91,6 @@ const Transactions: React.FC = () => {
                   transition: 'background 0.3s ease',
                   cursor: 'default'
                 }}
-                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
-                onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.02)'}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
                   <div style={{ 
@@ -91,19 +103,21 @@ const Transactions: React.FC = () => {
                     {tx.type === 'income' ? '⬇️' : tx.type === 'investment' ? '📈' : '💸'}
                   </div>
                   <div>
-                    <h4 style={{ margin: 0, fontSize: '18px', color: 'var(--text-primary)', fontWeight: 600 }}>{tx.title}</h4>
-                    <div style={{ color: 'var(--text-muted)', fontSize: '14px', marginTop: '6px' }}>{tx.date} • {tx.type === 'investment' ? 'Yatırım Hesabı' : 'Vadesiz Hesap'}</div>
+                    <h4 style={{ margin: 0, fontSize: '18px', color: 'var(--text-primary)', fontWeight: 600 }}>{tx.title || tx.description}</h4>
+                    <div style={{ color: 'var(--text-secondary)', fontSize: '14px', marginTop: '6px' }}>
+                      {new Date(tx.date).toLocaleDateString('tr-TR')} • {tx.category || (tx.type === 'income' ? 'Gelir' : 'Gider')}
+                    </div>
                   </div>
                 </div>
                 <div style={{ 
                   fontSize: '20px', 
                   fontWeight: 'bold',
-                  color: tx.amount.startsWith('+') ? 'var(--success)' : 'var(--text-primary)',
+                  color: tx.type === 'income' ? 'var(--success)' : 'var(--text-primary)',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px'
                 }}>
-                  {tx.amount}
+                  {tx.type === 'income' ? '+' : '-'}₺{Math.abs(tx.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </div>
               </div>
             ))

@@ -3,7 +3,7 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recha
 import FinancialGoalsModal from './FinancialGoalsModal';
 import ScheduledTransactionsModal from './ScheduledTransactionsModal';
 import { useAuth } from '../context/AuthContext';
-import { assetApi, goalApi } from '../services/api';
+import { assetApi, goalApi, userApi, marketApi } from '../services/api';
 
 const COLORS = ['#00d2ff', '#f59e0b', '#8b5cf6', '#10b981', '#3b82f6'];
 
@@ -14,6 +14,8 @@ const Dashboard: React.FC = () => {
   
   const [assets, setAssets] = useState<any[]>([]);
   const [goals, setGoals] = useState<any[]>([]);
+  const [userData, setUserData] = useState<any>(null);
+  const [marketPrices, setMarketPrices] = useState<any>({});
   const [loading, setLoading] = useState(true);
 
   const [refreshKey, setRefreshKey] = useState(0);
@@ -31,12 +33,16 @@ const Dashboard: React.FC = () => {
 
     const fetchData = async () => {
       try {
-        const [assetData, goalData] = await Promise.all([
+        const [assetData, goalData, profileData, priceData] = await Promise.all([
           assetApi.getAssets(userId),
-          goalApi.getGoals(userId)
+          goalApi.getGoals(userId),
+          userApi.getMe(userId),
+          marketApi.getPrices()
         ]);
         setAssets(assetData);
         setGoals(goalData);
+        setUserData(profileData);
+        setMarketPrices(priceData);
       } catch (error) {
         console.error('Veri çekme hatası:', error);
       } finally {
@@ -45,6 +51,8 @@ const Dashboard: React.FC = () => {
     };
 
     fetchData();
+    const interval = setInterval(fetchData, 30000); // 30 saniyede bir güncelle
+    return () => clearInterval(interval);
   }, [userId, refreshKey]);
 
   // Varlıkları grafiğe uygun formata dönüştür
@@ -74,6 +82,15 @@ const Dashboard: React.FC = () => {
     setRefreshKey(prev => prev + 1); // Verileri yenile
   };
 
+  const emergencyFundMonthlyExpense = userData?.monthlyExpense || 0;
+  const emergencyFundCurrent = assets
+    .filter(a => a.type.toLowerCase().includes('nakit') || a.type.toLowerCase().includes('mevduat'))
+    .reduce((sum, a) => sum + (a.quantity * (a.currentPrice || a.averageBuyPrice || 0)), 0);
+  
+  const emergencyFundTarget = emergencyFundMonthlyExpense * 6;
+  const emergencyFundMonths = emergencyFundMonthlyExpense > 0 ? +(emergencyFundCurrent / emergencyFundMonthlyExpense).toFixed(1) : 0;
+  const emergencyFundPercent = emergencyFundTarget > 0 ? Math.min(100, Math.round((emergencyFundCurrent / emergencyFundTarget) * 100)) : 0;
+
   return (
     <div className="dashboard-grid">
       
@@ -87,34 +104,29 @@ const Dashboard: React.FC = () => {
             <div className="stat-value heading-gradient sensitive-data">
               ₺{totalNetWorth.toLocaleString(undefined, { minimumFractionDigits: 2 })}
             </div>
-            <div style={{ 
-              display: 'inline-block',
-              background: '+5.2%'.startsWith('+') ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
-              color: '+5.2%'.startsWith('+') ? 'var(--accent-green)' : 'var(--accent-red)',
-              padding: '6px 12px',
-              borderRadius: '12px',
-              fontSize: '14px',
-              fontWeight: 700,
-              marginTop: '4px'
-            }} className="sensitive-data">
-              {'+5.2%'.startsWith('+') ? '▲' : '▼'} {'+5.2%'} bu ay
-            </div>
           </div>
           
           <div className="col-span-3 glass-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <div className="card-header">
               <span className="card-title" style={{ fontSize: '14px' }}>Aylık Gelir</span>
             </div>
-            <div className="stat-value sensitive-data">₺45,000.00</div>
-            <div className="stat-label text-muted">Sabit Maaş</div>
+            <div className="stat-value sensitive-data">₺{(userData?.monthlyIncome || 0).toLocaleString()}</div>
+            <div className="stat-label text-muted">Sabit Gelir</div>
           </div>
 
-          <div className="col-span-3 glass-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <div className="col-span-3 glass-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>
             <div className="card-header">
               <span className="card-title" style={{ fontSize: '14px' }}>Aylık Gider</span>
             </div>
-            <div className="stat-value sensitive-data" style={{ fontSize: '24px' }}>₺18,200.00</div>
-            <div className="stat-label text-danger" style={{ fontSize: '12px' }}>Kredi & Faturalar</div>
+            <div className="stat-value sensitive-data" style={{ fontSize: '24px' }}>₺{(userData?.monthlyExpense || 0).toLocaleString()}</div>
+            <div className="stat-label text-danger" style={{ fontSize: '12px' }}>Tahmini Giderler</div>
+            
+            {/* Anomali Tespiti (Vision Item #3) */}
+            {(userData?.monthlyExpense > 0) && (
+              <div style={{ position: 'absolute', top: '10px', right: '10px', animation: 'pulse 2s infinite' }}>
+                <span title="Anomali Tespiti yayında!" style={{ cursor: 'help' }}>🛡️</span>
+              </div>
+            )}
           </div>
 
           {/* Tasarruf Hızı */}
@@ -125,12 +137,19 @@ const Dashboard: React.FC = () => {
                 Tasarruf Hızı
               </span>
             </div>
-            <div className="stat-value sensitive-data" style={{ fontSize: '28px', color: 'var(--accent-green)' }}>%59.5</div>
-            <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px', overflow: 'hidden', marginTop: '8px', marginBottom: '6px' }}>
-              <div style={{ width: '59.5%', height: '100%', background: 'var(--accent-green)', borderRadius: '3px' }}></div>
-            </div>
-            <div className="stat-value sensitive-data">₺18,200.00</div>
-            <div className="stat-label text-danger">Kredi & Faturalar</div>
+            {userData?.monthlyIncome > 0 ? (
+              <>
+                <div className="stat-value sensitive-data" style={{ fontSize: '28px', color: 'var(--accent-green)' }}>
+                  %{Math.max(0, Math.round(((userData.monthlyIncome - userData.monthlyExpense) / userData.monthlyIncome) * 100))}
+                </div>
+                <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px', overflow: 'hidden', marginTop: '8px', marginBottom: '6px' }}>
+                  <div style={{ width: `${Math.max(0, Math.round(((userData.monthlyIncome - userData.monthlyExpense) / userData.monthlyIncome) * 100))}%`, height: '100%', background: 'var(--accent-green)', borderRadius: '3px' }}></div>
+                </div>
+                <div className="stat-label text-muted" style={{ fontSize: '11px' }}>₺{Math.max(0, userData.monthlyIncome - userData.monthlyExpense).toLocaleString()} Tasarruf / Ay</div>
+              </>
+            ) : (
+              <div className="stat-label text-muted">Profil verisi bekleniyor</div>
+            )}
           </div>
         </div>
       </div>
@@ -194,25 +213,14 @@ const Dashboard: React.FC = () => {
             Tümünü Gör
           </button>
         </div>
-        {goals.length > 0 ? goals.map((goal, idx) => (
-          <div key={idx} style={{ marginBottom: '20px', marginTop: '15px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-              <span>{goal.name}</span>
-              <span className="text-muted">%{Math.round(((goal.currentAmount || 0) / (goal.targetAmount || 1)) * 100)}</span>
-            </div>
-            <div style={{ width: '100%', height: '8px', background: 'var(--bg-primary)', borderRadius: '4px', overflow: 'hidden' }}>
-              <div style={{ 
-                width: `${Math.min(100, ((goal.currentAmount || 0) / (goal.targetAmount || 1)) * 100)}%`, 
-                height: '100%', 
-                background: COLORS[idx % COLORS.length] 
-                  {/* Dinamik Hedef Listesi */}
-        {goals.length > 0 ? goals.map((goal, idx) => {
-          const progress = Math.round(((goal.currentAmount || 0) / (goal.targetAmount || 1)) * 100);
+        {/* Dinamik Hedef Listesi */}
+        {goals.length > 0 ? goals.slice(0, 3).map((goal, idx) => {
+          const progress = Math.round(((goal.currentAmount || 0) / (goal.currentTargetPrice || goal.targetAmount || 1)) * 100);
           return (
             <div key={idx} style={{ marginBottom: '20px', marginTop: '15px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <span>{goal.name}</span>
-                <span style={{ color: getProgressColor(progress), fontWeight: 'bold' }}>%{progress}</span>
+                <span style={{ fontSize: '14px', fontWeight: 500 }}>{goal.name}</span>
+                <span style={{ color: getProgressColor(progress), fontWeight: 'bold', fontSize: '14px' }}>%{progress}</span>
               </div>
               <div style={{ width: '100%', height: '8px', background: 'var(--bg-primary)', borderRadius: '4px', overflow: 'hidden' }}>
                 <div style={{ 
@@ -226,140 +234,73 @@ const Dashboard: React.FC = () => {
         }) : (
           <div style={{ textAlign: 'center', marginTop: '40px' }}>
             <div style={{ fontSize: '2.5rem', marginBottom: '10px' }}>🎯</div>
-            <p className="text-muted">Hedef belirlemek başarının yarısıdır!</p>
+            <p className="text-muted">Henüz hedef belirlemedin.</p>
           </div>
         )}
 
-        {/* Acil Durum Fonu Mini Widget (Arkadaştan Gelen) */}
+        {/* Acil Durum Fonu Mini Widget */}
         <div 
           onClick={() => setIsEmergencyModalOpen(true)}
           style={{ marginTop: '28px', paddingTop: '20px', borderTop: '1px solid var(--border-color)', cursor: 'pointer' }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-            <span style={{ fontSize: '14px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', color: '#ef4444' }}>
+            <span style={{ fontSize: '14px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', color: emergencyFundPercent < 50 ? '#ef4444' : 'var(--accent-green)' }}>
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
               </svg>
               Acil Durum Fonu
             </span>
-            <span style={{ fontSize: '11px', background: 'rgba(239,68,68,0.1)', color: '#ef4444', padding: '3px 8px', borderRadius: '6px', fontWeight: 700 }}>⚠️ Düşük</span>
+            <span style={{ fontSize: '11px', background: emergencyFundPercent < 50 ? 'rgba(239,68,68,0.1)' : 'rgba(16, 185, 129, 0.1)', color: emergencyFundPercent < 50 ? '#ef4444' : 'var(--accent-green)', padding: '3px 8px', borderRadius: '6px', fontWeight: 700 }}>
+              {emergencyFundPercent < 50 ? '⚠️ Düşük' : '✅ Güvende'}
+            </span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '13px' }}>
-            <span style={{ color: 'var(--text-secondary)' }}>1.2 / 6 ay karşılandı</span>
-            <span style={{ color: '#ef4444', fontWeight: 700 }}>%20</span>
+            <span style={{ color: 'var(--text-secondary)' }}>{emergencyFundMonths} / 6 ay karşılandı</span>
+            <span style={{ color: emergencyFundPercent < 50 ? '#ef4444' : 'var(--accent-green)', fontWeight: 700 }}>%{emergencyFundPercent}</span>
           </div>
           <div style={{ width: '100%', height: '6px', background: 'var(--bg-primary)', borderRadius: '3px', overflow: 'hidden' }}>
-            <div style={{ width: '20%', height: '100%', background: '#ef4444', borderRadius: '3px' }}></div>
+            <div style={{ width: `${emergencyFundPercent}%`, height: '100%', background: emergencyFundPercent < 50 ? '#ef4444' : 'var(--accent-green)', borderRadius: '3px' }}></div>
           </div>
         </div>
 
-        {/* Fiyat Alarmları Widget (Arkadaştan Gelen) */}
+        {/* Canlı Piyasa İzleme (Vision Item #2) */}
         <div style={{ marginTop: '32px', paddingTop: '24px', borderTop: '1px solid var(--border-color)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <span style={{ fontSize: '16px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-primary)' }}>
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-neon-blue)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
+                <polyline points="16 7 22 7 22 13"></polyline>
               </svg>
-              Canlı Fiyat Alarmları
+              Canlı Piyasa İzleme
             </span>
+            <span style={{ fontSize: '10px', color: 'var(--accent-green)', fontWeight: 800 }}>LIVE</span>
           </div>
-
+          
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <div style={{ padding: '14px', background: 'rgba(245, 158, 11, 0.05)', borderRadius: '12px', border: '1px solid rgba(245, 158, 11, 0.2)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '13px' }}>XAU</div>
-                <div>
-                  <div style={{ fontWeight: 600, fontSize: '14px', color: 'var(--text-primary)' }}>Altın (Gram)</div>
-                  <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Hedef: ₺2,600</div>
+            {[
+              { symbol: 'XAU', label: 'Altın (Gram)', price: marketPrices.XAU, icon: '🟡' },
+              { symbol: 'BTC', label: 'Bitcoin', price: marketPrices.BTC, icon: '🟠' },
+              { symbol: 'AAPL', label: 'Apple Inc.', price: marketPrices.AAPL, icon: '🍎' }
+            ].map(m => (
+              <div key={m.symbol} style={{ padding: '12px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px' }}>{m.icon}</div>
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: '13px' }}>{m.label}</div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{m.symbol}/TRY</div>
+                  </div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontWeight: '800', fontSize: '14px' }}>₺{m.price ? m.price.toLocaleString() : '---'}</div>
+                  <div style={{ fontSize: '10px', color: 'var(--accent-green)' }}>+0.45% ▲</div>
                 </div>
               </div>
-              <div style={{ fontWeight: '800', fontSize: '14px', color: '#f59e0b' }}>%94</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Scheduled Debts & Receivables */}
-      <div className="col-span-12">
-        <div className="dashboard-grid">
-          <div 
-            className="col-span-6 glass-card interactive-card" 
-            style={{ cursor: 'pointer', padding: '20px' }}
-            onClick={() => setScheduledModalType('debt')}
-          >
-            <div className="card-header">
-              <span className="card-title">Planlanmış Tarihli Borçlar</span>
-            </div>
-            <div style={{ marginTop: '15px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                <div>
-                  <div style={{ fontWeight: 500, fontSize: '0.95rem' }}>Konut Kredisi Taksiti</div>
-                  <div className="text-muted" style={{ fontSize: '0.8rem', marginTop: '2px' }}>15 Mayıs 2026</div>
-                </div>
-                <div className="text-danger sensitive-data" style={{ fontWeight: 'bold' }}>-₺12,500.00</div>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                <div>
-                  <div style={{ fontWeight: 500, fontSize: '0.95rem' }}>Kredi Kartı Ekstresi</div>
-                  <div className="text-muted" style={{ fontSize: '0.8rem', marginTop: '2px' }}>22 Mayıs 2026</div>
-                </div>
-                <div className="text-danger sensitive-data" style={{ fontWeight: 'bold' }}>-₺8,450.00</div>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0' }}>
-                <div>
-                  <div style={{ fontWeight: 500, fontSize: '0.95rem' }}>Araç Sigortası</div>
-                  <div className="text-muted" style={{ fontSize: '0.8rem', marginTop: '2px' }}>05 Haziran 2026</div>
-                </div>
-                <div className="text-danger sensitive-data" style={{ fontWeight: 'bold' }}>-₺4,200.00</div>
-              </div>
-            </div>
-          </div>
-
-          <div 
-            className="col-span-6 glass-card interactive-card" 
-            style={{ cursor: 'pointer', padding: '20px' }}
-            onClick={() => setScheduledModalType('receivable')}
-          >
-            <div className="card-header">
-              <span className="card-title">Planlanmış Tarihli Alacaklar</span>
-            </div>
-            <div style={{ marginTop: '15px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                <div>
-                  <div style={{ fontWeight: 500, fontSize: '0.95rem' }}>Freelance Proje</div>
-                  <div className="text-muted" style={{ fontSize: '0.8rem', marginTop: '2px' }}>12 Mayıs 2026</div>
-                </div>
-                <div className="text-success sensitive-data" style={{ fontWeight: 'bold' }}>+₺15,000.00</div>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                <div>
-                  <div style={{ fontWeight: 500, fontSize: '0.95rem' }}>Kira Geliri</div>
-                  <div className="text-muted" style={{ fontSize: '0.8rem', marginTop: '2px' }}>20 Mayıs 2026</div>
-                </div>
-                <div className="text-success sensitive-data" style={{ fontWeight: 'bold' }}>+₺18,500.00</div>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0' }}>
-                <div>
-                  <div style={{ fontWeight: 500, fontSize: '0.95rem' }}>Temettü Ödemesi</div>
-                  <div className="text-muted" style={{ fontSize: '0.8rem', marginTop: '2px' }}>28 Mayıs 2026</div>
-                </div>
-                <div className="text-success sensitive-data" style={{ fontWeight: 'bold' }}>+₺3,250.00</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>ve-data" style={{ fontWeight: 'bold' }}>+₺3,250.00</div>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </div>
       
-      <FinancialGoalsModal 
-        isOpen={isGoalsModalOpen} 
-        onClose={handleModalClose} 
-      />
+      <FinancialGoalsModal isOpen={isGoalsModalOpen} onClose={handleModalClose} />
       <ScheduledTransactionsModal
         isOpen={scheduledModalType !== null}
         onClose={handleModalClose}

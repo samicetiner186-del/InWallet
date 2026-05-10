@@ -36,15 +36,18 @@ const FinancialGoalsModal: React.FC<FinancialGoalsModalProps> = ({ isOpen, onClo
     e.preventDefault();
     if (!userId) return;
 
-    setLoading(true);
+    const goalData = {
+      user: { id: Number(userId) },
+      name: newGoalTitle,
+      initialPrice: parseFloat(newGoalTarget),
+      targetAmount: parseFloat(newGoalTarget),
+      currentAmount: 0,
+      expectedInflationRate: 40, // Default enflasyon
+      targetDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString() // 1 yıl sonra
+    };
+
     try {
-      await goalApi.createGoal({
-        user: { id: userId }, // Backend User nesnesi bekliyor olabilir
-        name: newGoalTitle,
-        targetAmount: parseFloat(newGoalTarget),
-        currentAmount: 0,
-        deadline: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString() // Default 1 yıl
-      });
+      await goalApi.createGoal(goalData);
       setNewGoalTitle('');
       setNewGoalTarget('');
       fetchGoals(); // Listeyi yenile
