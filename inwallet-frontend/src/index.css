@@ -2,13 +2,13 @@
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,500;1,600&display=swap');
 
 :root {
-  /* Premium Dark Mode Palette */
-  --bg-primary: #0A0E17;
-  --bg-secondary: #121826;
-  --bg-glass: rgba(18, 24, 38, 0.6);
+  /* Light Mode (Default) */
+  --bg-primary: #F8FAFC;
+  --bg-secondary: #FFFFFF;
+  --bg-glass: rgba(255, 255, 255, 0.85);
   
-  --text-primary: #FFFFFF;
-  --text-secondary: #94A3B8;
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
   
   --accent-blue: #3B82F6;
   --accent-neon-blue: #60A5FA;
@@ -18,33 +18,46 @@
   --success: var(--accent-green);
   --danger: var(--accent-red);
   
-  --border-color: rgba(255, 255, 255, 0.1);
-  --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-glow: 0 0 20px rgba(96, 165, 250, 0.2);
-}
-
-/* Light Mode Palette */
-[data-theme="light"] {
-  --bg-primary: #F8FAFC;
-  --bg-secondary: #FFFFFF;
-  --bg-glass: rgba(255, 255, 255, 0.85);
-  
-  --text-primary: #0F172A;
-  --text-secondary: #475569;
-  
   --border-color: rgba(0, 0, 0, 0.08);
   --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
   --shadow-glow: 0 0 20px rgba(59, 130, 246, 0.25);
 }
 
-[data-theme="light"] body {
-  background-image: 
+body {
+  background-image:
     radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.08), transparent 25%),
     radial-gradient(circle at 85% 30%, rgba(16, 185, 129, 0.08), transparent 25%);
 }
 
-[data-theme="light"] .heading-gradient {
+.heading-gradient {
   background: linear-gradient(135deg, #0F172A 0%, #334155 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Dark Mode Palette */
+[data-theme="dark"] {
+  --bg-primary: #0A0E17;
+  --bg-secondary: #121826;
+  --bg-glass: rgba(18, 24, 38, 0.6);
+  
+  --text-primary: #FFFFFF;
+  --text-secondary: #94A3B8;
+  
+  --border-color: rgba(255, 255, 255, 0.1);
+  --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-glow: 0 0 20px rgba(96, 165, 250, 0.2);
+}
+
+[data-theme="dark"] body {
+  background-image:
+    radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.05), transparent 25%),
+    radial-gradient(circle at 85% 30%, rgba(16, 185, 129, 0.05), transparent 25%);
+}
+
+[data-theme="dark"] .heading-gradient {
+  background: linear-gradient(135deg, #FFFFFF 0%, #94A3B8 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

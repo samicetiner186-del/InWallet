@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const assetOptions = [
   { id: 'gold', label: 'Altın (Gram)', annualReturn: 0.35, color: '#f59e0b', symbol: 'XAU' },
@@ -45,7 +45,7 @@ const DCAPlanner: React.FC = () => {
 
   const profit = result.finalNominal - result.totalInvested;
   const profitPct = Math.round((profit / result.totalInvested) * 100);
-  const reelProfit = result.finalReel - result.totalInvested;
+  // const reelProfit = result.finalReel - result.totalInvested;
 
   return (
     <div className="dashboard-grid">

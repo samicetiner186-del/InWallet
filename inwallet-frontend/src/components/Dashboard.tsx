@@ -20,14 +20,14 @@ const Dashboard: React.FC = () => {
   const [marketPrices, setMarketPrices] = useState<any>({});
   const [refreshKey, setRefreshKey] = useState(0);
 
-  const handleNavigate = (viewId: string) => {
-    window.dispatchEvent(new CustomEvent('navigate', { detail: viewId }));
-  };
-
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 30000);
     return () => clearInterval(timer);
   }, []);
+
+  const handleNavigate = (viewId: string) => {
+    window.dispatchEvent(new CustomEvent('navigate', { detail: viewId }));
+  };
 
   const fetchData = async () => {
     if (!userId) return;
@@ -83,21 +83,55 @@ const Dashboard: React.FC = () => {
     <div className="dashboard-grid animate-fade-in">
       <div className="col-span-12" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', padding: '0 10px' }}>
         <div>
-          <h2 style={{ margin: 0, fontSize: '28px', fontWeight: 800 }} className="heading-gradient">
+          <h2 style={{ margin: 0, fontSize: '28px', fontWeight: 800, color: 'var(--text-primary)' }}>
             Hoş Geldin, {userData?.username || username || 'Kullanıcı'}
           </h2>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '6px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginTop: '6px' }}>
             <span style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>
-              📅 {currentTime.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
+              {currentTime.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
             </span>
-            <span style={{ color: 'var(--accent-blue)', fontWeight: 700, fontSize: '14px' }}>
-              🕒 {currentTime.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+            <span style={{ color: 'var(--accent-blue)', fontWeight: 600, fontSize: '14px' }}>
+              {currentTime.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
             </span>
           </div>
         </div>
-        <div style={{ display: 'flex', gap: '12px' }}>
-          <button onClick={() => handleNavigate('settings')} className="btn-secondary" style={{ padding: '8px 16px', borderRadius: '10px' }}>👤 Profilim</button>
-          <button onClick={logout} className="btn-primary" style={{ background: '#ef4444', padding: '8px 16px', borderRadius: '10px' }}>🚪 Çıkış Yap</button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button
+            onClick={() => handleNavigate('settings')}
+            style={{
+              padding: '8px 18px',
+              borderRadius: '10px',
+              border: '1.5px solid var(--accent-blue)',
+              background: 'transparent',
+              color: 'var(--accent-blue)',
+              fontWeight: 600,
+              fontSize: '14px',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(59,130,246,0.1)'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
+          >
+            Profilim
+          </button>
+          <button
+            onClick={logout}
+            style={{
+              padding: '8px 18px',
+              borderRadius: '10px',
+              border: 'none',
+              background: 'rgba(239,68,68,0.12)',
+              color: '#ef4444',
+              fontWeight: 600,
+              fontSize: '14px',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(239,68,68,0.22)'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(239,68,68,0.12)'; }}
+          >
+            Çıkış Yap
+          </button>
         </div>
       </div>
 
@@ -125,7 +159,24 @@ const Dashboard: React.FC = () => {
       <div className="col-span-8 glass-card">
         <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between' }}>
           <span className="card-title">Portföy Dağılımı</span>
-          <button onClick={() => handleNavigate('portfolio')} className="btn-secondary" style={{ fontSize: '11px' }}>Varlıkları Gör</button>
+          <button
+            onClick={() => handleNavigate('portfolio')}
+            style={{
+              fontSize: '12px',
+              padding: '6px 14px',
+              borderRadius: '8px',
+              border: '1.5px solid var(--accent-blue)',
+              background: 'transparent',
+              color: 'var(--accent-blue)',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(59,130,246,0.1)'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
+          >
+            Varlıkları Gör
+          </button>
         </div>
         <div style={{ height: '300px', width: '100%' }}>
           {portfolioData.length > 0 ? (
@@ -144,9 +195,31 @@ const Dashboard: React.FC = () => {
 
       <div className="col-span-4" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         <div className="glass-card" style={{ flex: 1 }}>
-          <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span className="card-title">Finansal Hedefler</span>
-            <button onClick={() => handleNavigate('goals')} style={{ fontSize: '11px', color: 'var(--accent-blue)', background: 'none', border: 'none', cursor: 'pointer' }}>Tümü</button>
+            <button
+              onClick={() => handleNavigate('goals')}
+              style={{
+                fontSize: '12px',
+                fontWeight: 700,
+                padding: '5px 14px',
+                borderRadius: '20px',
+                border: '1.5px solid var(--accent-blue)',
+                background: 'transparent',
+                color: 'var(--accent-blue)',
+                cursor: 'pointer',
+                letterSpacing: '0.3px',
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={e => {
+                (e.currentTarget as HTMLButtonElement).style.background = 'rgba(59,130,246,0.1)';
+                (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-1px)';
+              }}
+              onMouseLeave={e => {
+                (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
+                (e.currentTarget as HTMLButtonElement).style.transform = 'none';
+              }}
+            >Tümünü Gör →</button>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '15px' }}>
             {goals.length > 0 ? goals.slice(0, 3).map(goal => {

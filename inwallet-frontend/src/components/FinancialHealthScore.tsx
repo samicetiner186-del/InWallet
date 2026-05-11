@@ -156,7 +156,7 @@ interface FinancialHealthScoreProps {
   onNavigate?: (view: string) => void;
 }
 
-const FinancialHealthScore: React.FC<FinancialHealthScoreProps> = ({ onNavigate }) => {
+const FinancialHealthScore: React.FC<FinancialHealthScoreProps> = () => {
   const [expanded, setExpanded] = useState(false);
   const [activeMetric, setActiveMetric] = useState<typeof metrics[0] | null>(null);
   const grade = getGrade(totalScore);

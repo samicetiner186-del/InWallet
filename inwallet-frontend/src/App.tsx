@@ -11,15 +11,13 @@ import Portfolio from './pages/Portfolio';
 import Transactions from './pages/Transactions';
 import Goals from './pages/Goals';
 import Settings from './pages/Settings';
-import Favorites from './pages/Favorites';
-import BudgetAnalysis from './pages/BudgetAnalysis';
 import DCAPlanner from './pages/DCAPlanner';
 import EmergencyFund from './pages/EmergencyFund';
 
 import Market from './pages/Market';
 
 const AppContent: React.FC = () => {
-  const { isLoggedIn, username, logout } = useAuth();
+  const { isLoggedIn, username } = useAuth();
   
   // Sayfa yenilendiğinde kalınan yerden devam etmesi için localStorage kullanımı
   const [currentView, setCurrentView] = useState(() => {
@@ -48,7 +46,6 @@ const AppContent: React.FC = () => {
       case 'market': return <Market />;
       case 'transactions': return <Transactions />;
       case 'goals': return <Goals />;
-      case 'favorites': return <Favorites />;
       case 'dca': return <DCAPlanner />;
       case 'emergency': return <EmergencyFund />;
       case 'settings': return <Settings />;

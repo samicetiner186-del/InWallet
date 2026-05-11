@@ -1,28 +1,44 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { userApi } from '../services/api';
 
 const Settings: React.FC = () => {
-  const [darkMode, setDarkMode] = useState(true);
+  const { userId, username } = useAuth();
+  const [userData, setUserData] = useState<any>(null);
+
+  // Tema: varsayılan açık (light)
+  const [theme, setTheme] = useState(() => localStorage.getItem('inwallet_theme') || 'light');
   const [aiNotifications, setAiNotifications] = useState(true);
   const [goalNotifications, setGoalNotifications] = useState(false);
-  
-  // New Settings States
-  const [twoFactorAuth, setTwoFactorAuth] = useState(false);
-  const [biometricLogin, setBiometricLogin] = useState(true);
   const [defaultPrivacy, setDefaultPrivacy] = useState(false);
 
-  // Reusable Switch Component
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('inwallet_theme', theme);
+  }, [theme]);
+
+  useEffect(() => {
+    if (!userId) return;
+    userApi.getMe(Number(userId)).then(setUserData).catch(() => {});
+  }, [userId]);
+
+  const displayName = userData?.username || username || 'Kullanıcı';
+  const displayEmail = userData?.email || '';
+  const initials = displayName.slice(0, 2).toUpperCase();
+
   const ToggleSwitch = ({ checked, onChange }: { checked: boolean, onChange: () => void }) => (
-    <div 
+    <div
       onClick={onChange}
       style={{
         width: '50px',
         height: '28px',
-        background: checked ? 'var(--accent-blue)' : 'rgba(255,255,255,0.15)',
+        background: checked ? 'var(--accent-blue)' : 'rgba(128,128,128,0.3)',
         borderRadius: '20px',
         position: 'relative',
         cursor: 'pointer',
         transition: 'background 0.3s ease',
-        boxShadow: checked ? '0 0 10px rgba(59, 130, 246, 0.5)' : 'none'
+        boxShadow: checked ? '0 0 10px rgba(59, 130, 246, 0.5)' : 'none',
+        flexShrink: 0,
       }}
     >
       <div style={{
@@ -42,84 +58,84 @@ const Settings: React.FC = () => {
   return (
     <div className="dashboard-grid">
       <div className="col-span-12 glass-card">
-        <div className="card-header" style={{ marginBottom: '30px', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '20px' }}>
+        <div className="card-header" style={{ marginBottom: '30px', borderBottom: '1px solid var(--border-color)', paddingBottom: '20px' }}>
           <div>
-            <span className="card-title" style={{ fontSize: '26px', display: 'block', color: 'var(--text-primary)' }}>Ayarlar ve Tercihler</span>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '15px', marginTop: '6px' }}>Hesap güvenliğinizi, bildirimlerinizi ve uygulama deneyiminizi yönetin.</p>
+            <span className="card-title" style={{ fontSize: '26px', display: 'block' }}>Ayarlar ve Tercihler</span>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '15px', marginTop: '6px' }}>
+              Hesap bilgilerinizi, bildirimlerinizi ve uygulama deneyiminizi yönetin.
+            </p>
           </div>
         </div>
-        
+
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px' }}>
-          
-          {/* Left Column */}
+
+          {/* Sol Kolon */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-            
+
+            {/* Profil Bilgileri */}
             <section>
-              <h3 style={{ color: 'var(--accent-neon-blue)', marginBottom: '16px', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 700 }}>Profil Bilgileri</h3>
-              <div style={{ display: 'flex', gap: '20px', alignItems: 'center', background: 'rgba(255,255,255,0.02)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--accent-blue), var(--accent-neon-blue))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', fontWeight: 'bold', color: 'white', boxShadow: '0 8px 20px rgba(59, 130, 246, 0.4)' }}>SE</div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '20px', fontWeight: 'bold', color: 'white' }}>Sami Eren</div>
-                  <div style={{ color: 'var(--text-secondary)', marginTop: '2px', fontSize: '14px' }}>sami@inwallet.app</div>
-                  <div style={{ color: 'var(--accent-green)', fontSize: '12px', fontWeight: 600, marginTop: '6px' }}>✓ Premium Üye</div>
+              <h3 style={{ color: 'var(--accent-neon-blue)', marginBottom: '16px', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 700 }}>
+                Profil Bilgileri
+              </h3>
+              <div style={{ display: 'flex', gap: '20px', alignItems: 'center', background: 'rgba(128,128,128,0.05)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
+                <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--accent-blue), var(--accent-neon-blue))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', fontWeight: 'bold', color: 'white', boxShadow: '0 8px 20px rgba(59, 130, 246, 0.4)', flexShrink: 0 }}>
+                  {initials}
                 </div>
-                <button style={{ padding: '8px 16px', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'white', cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s ease', fontSize: '13px' }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'} onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}>
-                  Düzenle
-                </button>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: '20px', fontWeight: 'bold', color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {displayName}
+                  </div>
+                  {displayEmail && (
+                    <div style={{ color: 'var(--text-secondary)', marginTop: '2px', fontSize: '14px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {displayEmail}
+                    </div>
+                  )}
+                  <div style={{ color: 'var(--accent-green)', fontSize: '12px', fontWeight: 600, marginTop: '6px' }}>
+                    ✓ Aktif Üye
+                  </div>
+                </div>
               </div>
             </section>
 
+            {/* Gizlilik */}
             <section>
-              <h3 style={{ color: 'var(--accent-neon-blue)', marginBottom: '16px', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 700 }}>Güvenlik ve Gizlilik</h3>
-              <div style={{ background: 'rgba(255,255,255,0.02)', padding: '0 20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                  <div>
-                    <div style={{ fontSize: '15px', fontWeight: 600, color: 'white' }}>Biyometrik Giriş (Face ID)</div>
-                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>Uygulamaya girişte yüz tanıma kullan.</div>
-                  </div>
-                  <ToggleSwitch checked={biometricLogin} onChange={() => setBiometricLogin(!biometricLogin)} />
-                </div>
-
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                  <div>
-                    <div style={{ fontSize: '15px', fontWeight: 600, color: 'white' }}>İki Faktörlü Doğrulama (2FA)</div>
-                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>Hesap güvenliğinizi artırmak için SMS onayı.</div>
-                  </div>
-                  <ToggleSwitch checked={twoFactorAuth} onChange={() => setTwoFactorAuth(!twoFactorAuth)} />
-                </div>
-
+              <h3 style={{ color: 'var(--accent-neon-blue)', marginBottom: '16px', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 700 }}>
+                Gizlilik
+              </h3>
+              <div style={{ background: 'rgba(128,128,128,0.05)', padding: '0 20px', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 0' }}>
                   <div>
-                    <div style={{ fontSize: '15px', fontWeight: 600, color: 'white' }}>Varsayılan Gizlilik Modu</div>
+                    <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)' }}>Varsayılan Gizlilik Modu</div>
                     <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>Uygulama açılışında bakiyeleri gizle (Blur).</div>
                   </div>
                   <ToggleSwitch checked={defaultPrivacy} onChange={() => setDefaultPrivacy(!defaultPrivacy)} />
                 </div>
-
               </div>
             </section>
 
           </div>
 
-          {/* Right Column */}
+          {/* Sağ Kolon */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-            
+
+            {/* Görünüm ve Bildirimler */}
             <section>
-              <h3 style={{ color: 'var(--accent-neon-blue)', marginBottom: '16px', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 700 }}>Görünüm ve Bildirimler</h3>
-              <div style={{ background: 'rgba(255,255,255,0.02)', padding: '0 20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+              <h3 style={{ color: 'var(--accent-neon-blue)', marginBottom: '16px', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 700 }}>
+                Görünüm ve Bildirimler
+              </h3>
+              <div style={{ background: 'rgba(128,128,128,0.05)', padding: '0 20px', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 0', borderBottom: '1px solid var(--border-color)' }}>
                   <div>
-                    <div style={{ fontSize: '15px', fontWeight: 600, color: 'white' }}>Karanlık Mod (Dark Mode)</div>
-                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>Uygulama arayüzünü koyu temada kullanın.</div>
+                    <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)' }}>Koyu Tema</div>
+                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>Arayüzü koyu temada kullanın.</div>
                   </div>
-                  <ToggleSwitch checked={darkMode} onChange={() => setDarkMode(!darkMode)} />
+                  <ToggleSwitch checked={theme === 'dark'} onChange={() => setTheme(t => t === 'dark' ? 'light' : 'dark')} />
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 0', borderBottom: '1px solid var(--border-color)' }}>
                   <div>
-                    <div style={{ fontSize: '15px', fontWeight: 600, color: 'white' }}>Yapay Zeka (AI) Uyarıları</div>
+                    <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)' }}>Yapay Zeka (AI) Uyarıları</div>
                     <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>Portföy düşüşlerinde ve fırsatlarda akıllı bildirim.</div>
                   </div>
                   <ToggleSwitch checked={aiNotifications} onChange={() => setAiNotifications(!aiNotifications)} />
@@ -127,7 +143,7 @@ const Settings: React.FC = () => {
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 0' }}>
                   <div>
-                    <div style={{ fontSize: '15px', fontWeight: 600, color: 'white' }}>Hedef Hatırlatıcıları</div>
+                    <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)' }}>Hedef Hatırlatıcıları</div>
                     <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>Finansal hedefleriniz için haftalık raporlar.</div>
                   </div>
                   <ToggleSwitch checked={goalNotifications} onChange={() => setGoalNotifications(!goalNotifications)} />
@@ -136,48 +152,28 @@ const Settings: React.FC = () => {
               </div>
             </section>
 
+            {/* Finansal Ayarlar */}
             <section>
-              <h3 style={{ color: 'var(--accent-neon-blue)', marginBottom: '16px', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 700 }}>Finansal Ayarlar</h3>
-              <div style={{ background: 'rgba(255,255,255,0.02)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h3 style={{ color: 'var(--accent-neon-blue)', marginBottom: '16px', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 700 }}>
+                Finansal Ayarlar
+              </h3>
+              <div style={{ background: 'rgba(128,128,128,0.05)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
-                    <div style={{ fontSize: '15px', fontWeight: 600, color: 'white' }}>Varsayılan Para Birimi</div>
+                    <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)' }}>Varsayılan Para Birimi</div>
                     <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>Tüm portföy değerlemeleri için baz kur.</div>
                   </div>
-                  <select style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', outline: 'none' }}>
+                  <select style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', outline: 'none' }}>
                     <option value="TRY">₺ Türk Lirası (TRY)</option>
                     <option value="USD">$ Amerikan Doları (USD)</option>
                     <option value="EUR">€ Euro (EUR)</option>
                   </select>
                 </div>
-
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 0', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-                  <div>
-                    <div style={{ fontSize: '15px', fontWeight: 600, color: 'white' }}>Banka ve Borsa Bağlantıları</div>
-                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>Açık bankacılık ve API anahtarları yönetimi.</div>
-                  </div>
-                  <button style={{ padding: '6px 12px', background: 'var(--accent-neon-blue)', border: 'none', borderRadius: '8px', color: 'var(--bg-primary)', cursor: 'pointer', fontWeight: 700, fontSize: '12px' }}>
-                    Yönet
-                  </button>
-                </div>
-
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-                  <div>
-                    <div style={{ fontSize: '15px', fontWeight: 600, color: 'white' }}>Verileri Dışa Aktar</div>
-                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>Tüm işlemlerinizi Excel (CSV) formatında indirin.</div>
-                  </div>
-                  <button style={{ padding: '6px 12px', background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '8px', color: 'white', cursor: 'pointer', fontWeight: 600, fontSize: '12px' }}>
-                    İndir
-                  </button>
-                </div>
-
               </div>
             </section>
 
           </div>
         </div>
-
       </div>
     </div>
   );

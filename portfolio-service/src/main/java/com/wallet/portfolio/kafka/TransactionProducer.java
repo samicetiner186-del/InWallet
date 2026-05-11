@@ -12,9 +12,9 @@ public class TransactionProducer {
     private static final Logger LOGGER = LoggerFactory.getLogger(TransactionProducer.class);
     private static final String TOPIC = "transaction-events";
 
-    private final KafkaTemplate<String, Transaction> kafkaTemplate;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
-    public TransactionProducer(KafkaTemplate<String, Transaction> kafkaTemplate) {
+    public TransactionProducer(KafkaTemplate<String, Object> kafkaTemplate) {
         this.kafkaTemplate = kafkaTemplate;
     }
 
