@@ -136,32 +136,60 @@ const Portfolio: React.FC = () => {
                 style={{
                   display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
                   padding: '24px', background: 'rgba(255,255,255,0.02)', borderLeft: `5px solid ${color}`,
-                  cursor: 'pointer', position: 'relative'
+                  cursor: 'pointer', position: 'relative', overflow: 'hidden'
                 }}
                 onClick={() => setSelectedAsset(asset)}
               >
-                <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-                  <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: `${color}15`, color: color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', fontWeight: 800 }}>
-                    {asset.symbol ? asset.symbol.slice(0, 1) : 'V'}
+                <div style={{ display: 'flex', gap: '20px', alignItems: 'center', zIndex: 1 }}>
+                  <div style={{ width: '52px', height: '52px', borderRadius: '14px', background: `${color}20`, color: color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', fontWeight: 900, border: `1px solid ${color}40` }}>
+                    {asset.symbol ? asset.symbol.slice(0, 3) : '---'}
                   </div>
                   <div>
-                    <h4 style={{ margin: 0, fontSize: '18px' }}>{asset.name} <span style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>({asset.symbol})</span></h4>
-                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>{asset.quantity} Adet @ ₺{Number(asset.averageBuyPrice).toLocaleString()}</div>
-                  </div>
-                </div>
-                <div style={{ textAlign: 'right', display: 'flex', alignItems: 'center', gap: '24px' }}>
-                  <div>
-                    <div style={{ fontSize: '18px', fontWeight: 800 }}>₺{currentVal.toLocaleString()}</div>
-                    <div style={{ fontSize: '13px', fontWeight: 700, color: profit >= 0 ? 'var(--accent-green)' : '#ef4444', marginTop: '4px' }}>
-                      {profit >= 0 ? '▲' : '▼'} %{Math.abs(profitPct).toFixed(2)}
+                    <h4 style={{ margin: 0, fontSize: '18px', fontWeight: 700 }}>{asset.name} <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 400 }}>{asset.symbol}</span></h4>
+                    <div style={{ display: 'flex', gap: '12px', marginTop: '6px' }}>
+                      <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{asset.quantity} Adet</span>
+                      <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Maliyet: ₺{Number(asset.averageBuyPrice).toLocaleString()}</span>
                     </div>
                   </div>
-                  <button onClick={(e) => handleDeleteAsset(e, asset.id)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '18px', opacity: 0.4 }}>🗑️</button>
+                </div>
+
+                <div style={{ textAlign: 'right', zIndex: 1, display: 'flex', gap: '30px', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <div style={{ fontSize: '20px', fontWeight: 900 }}>₺{currentVal.toLocaleString()}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '6px' }}>
+                      <span style={{ 
+                        fontSize: '12px', fontWeight: 800, padding: '2px 8px', borderRadius: '6px',
+                        background: profit >= 0 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                        color: profit >= 0 ? 'var(--accent-green)' : '#ef4444'
+                      }}>
+                        {profit >= 0 ? '▲' : '▼'} %{Math.abs(profitPct).toFixed(2)}
+                      </span>
+                      <span style={{ fontSize: '12px', fontWeight: 600, color: profit >= 0 ? 'var(--accent-green)' : '#ef4444' }}>
+                        {profit >= 0 ? '+' : '-'}₺{Math.abs(currentVal - (Number(asset.quantity) * Number(asset.averageBuyPrice))).toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+                  <button onClick={(e) => handleDeleteAsset(e, asset.id)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '18px', opacity: 0.3, transition: 'opacity 0.2s' }} className="hover-opacity-100">🗑️</button>
+                </div>
+                
+                {/* Subtle background progress bar showing cost vs current value */}
+                <div style={{ 
+                  position: 'absolute', bottom: 0, left: 0, height: '3px', 
+                  width: '100%', background: 'rgba(255,255,255,0.05)' 
+                }}>
+                  <div style={{ 
+                    height: '100%', 
+                    width: `${Math.min(100, (Number(asset.averageBuyPrice) / currentPrice) * 100)}%`, 
+                    background: color, opacity: 0.3 
+                  }} />
                 </div>
               </div>
             );
           }) : (
-            <div style={{ textAlign: 'center', padding: '60px', color: 'var(--text-secondary)' }}>Henüz varlık eklemedin.</div>
+            <div style={{ textAlign: 'center', padding: '80px', color: 'var(--text-secondary)' }}>
+              <div style={{ fontSize: '40px', marginBottom: '15px' }}>📦</div>
+              Henüz varlık eklemedin. Sağdaki formu kullanarak portföyünü oluşturmaya başla.
+            </div>
           )}
         </div>
       </div>

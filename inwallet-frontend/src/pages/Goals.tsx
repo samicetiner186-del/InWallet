@@ -96,12 +96,21 @@ const Goals: React.FC = () => {
         ) : (
           goalsList.map(goal => {
             const currentAmount = Number(goal.currentAmount || 0);
-            const targetAmount = Number(goal.currentTargetPrice || goal.targetAmount || 1);
-            const progress = Math.min(100, Number(goal.completionPercentage || (currentAmount / targetAmount * 100) || 0));
-            const remaining = Math.max(0, targetAmount - currentAmount);
+            const nominalTarget = Number(goal.targetAmount || 1);
+            const inflationTarget = Number(goal.currentTargetPrice || nominalTarget);
+            const progress = Math.min(100, Number(goal.completionPercentage || (currentAmount / inflationTarget * 100) || 0));
+            const remaining = Math.max(0, inflationTarget - currentAmount);
             
+            // Ay hesabı
+            const today = new Date();
+            const targetDate = goal.targetDate ? new Date(goal.targetDate) : null;
+            const monthsLeft = targetDate 
+              ? (targetDate.getFullYear() - today.getFullYear()) * 12 + (targetDate.getMonth() - today.getMonth())
+              : 0;
+            const monthlySavings = monthsLeft > 0 ? (remaining / monthsLeft) : remaining;
+
             return (
-              <div key={goal.id} className="glass-card animate-hover" style={{ padding: '28px', display: 'flex', flexDirection: 'column', gap: '20px', position: 'relative' }}>
+              <div key={goal.id} className="glass-card animate-hover" style={{ padding: '28px', display: 'flex', flexDirection: 'column', gap: '20px', position: 'relative', borderTop: '4px solid var(--accent-blue)' }}>
                 <button 
                   onClick={() => handleDeleteGoal(goal.id)}
                   style={{ position: 'absolute', top: '15px', right: '15px', background: 'rgba(239, 68, 68, 0.1)', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '14px', width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
@@ -113,48 +122,60 @@ const Goals: React.FC = () => {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <div>
                     <h3 style={{ margin: 0, fontSize: '22px', fontWeight: 800 }}>{goal.name}</h3>
-                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>
-                      Hedef Tarih: {goal.targetDate ? new Date(goal.targetDate).toLocaleDateString('tr-TR') : '---'}
+                    <div style={{ display: 'flex', gap: '10px', marginTop: '6px' }}>
+                      <span className="badge-secondary" style={{ fontSize: '11px' }}>📅 {targetDate ? targetDate.toLocaleDateString('tr-TR') : '---'}</span>
+                      {goal.expectedInflationRate && (
+                        <span className="badge-secondary" style={{ fontSize: '11px', background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b' }}>🔥 %{goal.expectedInflationRate} Enflasyon Düzeltmeli</span>
+                      )}
                     </div>
                   </div>
                 </div>
 
-                <div style={{ marginTop: '10px' }}>
+                <div style={{ marginTop: '5px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '14px' }}>
-                    <span style={{ color: 'var(--text-secondary)' }}>İlerleme Durumu</span>
+                    <span style={{ color: 'var(--text-secondary)' }}>Hedef İlerlemesi</span>
                     <span style={{ fontWeight: 800, color: progress >= 100 ? 'var(--accent-green)' : 'var(--accent-blue)' }}>%{progress.toFixed(1)}</span>
                   </div>
-                  <div style={{ height: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px', overflow: 'hidden' }}>
+                  <div style={{ height: '10px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px', overflow: 'hidden' }}>
                     <div 
                       style={{ 
                         height: '100%', 
                         width: `${progress}%`, 
                         background: progress >= 100 ? 'var(--accent-green)' : 'linear-gradient(90deg, #3b82f6 0%, #8b5cf6 100%)',
-                        boxShadow: '0 0 20px rgba(59, 130, 246, 0.4)',
+                        boxShadow: '0 0 20px rgba(59, 130, 246, 0.3)',
                         transition: 'width 1s ease-out'
                       }} 
                     />
                   </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '10px' }}>
-                  <div style={{ padding: '16px', background: 'rgba(0,0,0,0.2)', borderRadius: '16px' }}>
-                    <div style={{ color: 'var(--text-secondary)', fontSize: '11px', marginBottom: '4px' }}>BİRİKEN</div>
-                    <div style={{ fontSize: '16px', fontWeight: 800 }}>₺{currentAmount.toLocaleString()}</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <div style={{ padding: '16px', background: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                    <div style={{ color: 'var(--text-secondary)', fontSize: '11px', marginBottom: '4px', fontWeight: 600 }}>BİRİKEN TUTAR</div>
+                    <div style={{ fontSize: '18px', fontWeight: 900 }}>₺{currentAmount.toLocaleString()}</div>
                   </div>
-                  <div style={{ padding: '16px', background: 'rgba(0,0,0,0.2)', borderRadius: '16px' }}>
-                    <div style={{ color: 'var(--text-secondary)', fontSize: '11px', marginBottom: '4px' }}>HEDEF</div>
-                    <div style={{ fontSize: '16px', fontWeight: 800 }}>₺{targetAmount.toLocaleString()}</div>
+                  <div style={{ padding: '16px', background: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                    <div style={{ color: 'var(--text-secondary)', fontSize: '11px', marginBottom: '4px', fontWeight: 600 }}>GÜNCEL HEDEF</div>
+                    <div style={{ fontSize: '18px', fontWeight: 900 }}>₺{inflationTarget.toLocaleString()}</div>
+                    {inflationTarget > nominalTarget && (
+                      <div style={{ fontSize: '10px', color: '#f59e0b', marginTop: '2px' }}>Vade sonu tahmini</div>
+                    )}
                   </div>
                 </div>
 
                 {remaining > 0 ? (
-                  <div style={{ fontSize: '13px', color: 'var(--text-secondary)', textAlign: 'center', paddingTop: '15px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-                    Hayaline ulaşmak için <span style={{ color: 'var(--text-primary)', fontWeight: 700 }}>₺{remaining.toLocaleString()}</span> daha biriktirmelisin.
+                  <div style={{ padding: '15px', background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%)', borderRadius: '12px' }}>
+                    <div style={{ fontSize: '13px', display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ color: 'var(--text-secondary)' }}>Aylık Birikim Hedefi:</span>
+                      <span style={{ fontWeight: 800, color: 'var(--text-primary)' }}>₺{Math.round(monthlySavings).toLocaleString()}</span>
+                    </div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                      Kalan {monthsLeft} ay boyunca her ay bu tutarı biriktirmelisiniz.
+                    </div>
                   </div>
                 ) : (
-                  <div style={{ fontSize: '13px', color: 'var(--accent-green)', textAlign: 'center', paddingTop: '15px', borderTop: '1px solid rgba(255,255,255,0.05)', fontWeight: 700 }}>
-                    🎉 Tebrikler! Hedefine ulaştın.
+                  <div style={{ textAlign: 'center', color: 'var(--accent-green)', fontWeight: 800, fontSize: '15px', padding: '10px' }}>
+                    ✨ HEDEFE ULAŞILDI!
                   </div>
                 )}
               </div>

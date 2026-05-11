@@ -23,6 +23,12 @@ public class AssetController {
 
     @PostMapping
     public ResponseEntity<Asset> createAsset(@RequestBody Asset asset) {
-        return ResponseEntity.ok(assetService.createAsset(asset));
+        return ResponseEntity.ok(assetService.createOrUpdateAsset(asset));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteAsset(@PathVariable Long id) {
+        assetService.deleteAsset(id);
+        return ResponseEntity.ok().build();
     }
 }

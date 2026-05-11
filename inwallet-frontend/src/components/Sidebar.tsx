@@ -12,7 +12,7 @@ interface SidebarProps {
 const menuItems = [
   { id: 'dashboard', icon: '🏠', label: 'Ana Sayfa', desc: 'Genel özet panosu', color: 'rgba(59, 130, 246, 0.2)', iconColor: '#3b82f6' },
   { id: 'portfolio', icon: '💼', label: 'Portföyüm', desc: 'Varlıklarınızı inceleyin', color: 'rgba(139, 92, 246, 0.2)', iconColor: '#8b5cf6' },
-  { id: 'budget', icon: '📊', label: 'Bütçe Analizi', desc: 'Gelir/Gider dengesi', color: 'rgba(16, 185, 129, 0.2)', iconColor: '#10b981' },
+  { id: 'market', icon: '💹', label: 'Piyasalar', desc: 'Canlı veriler ve yatırım', color: 'rgba(59, 130, 246, 0.2)', iconColor: '#3b82f6' },
   { id: 'dca', icon: '📈', label: 'DCA Planlayıcı', desc: 'Düzenli yatırım planı', color: 'rgba(99, 102, 241, 0.2)', iconColor: '#6366f1' },
   { id: 'transactions', icon: '🔁', label: 'İşlem Geçmişi', desc: 'Gelir ve gider akışı', badge: 3, color: 'rgba(16, 185, 129, 0.2)', iconColor: '#10b981' },
   { id: 'goals', icon: '🎯', label: 'Hedeflerim', desc: 'Hayallerinizi planlayın', color: 'rgba(245, 158, 11, 0.2)', iconColor: '#f59e0b' },

@@ -16,6 +16,8 @@ import BudgetAnalysis from './pages/BudgetAnalysis';
 import DCAPlanner from './pages/DCAPlanner';
 import EmergencyFund from './pages/EmergencyFund';
 
+import Market from './pages/Market';
+
 const AppContent: React.FC = () => {
   const { isLoggedIn, username, logout } = useAuth();
   
@@ -43,10 +45,10 @@ const AppContent: React.FC = () => {
     switch(currentView) {
       case 'dashboard': return <Dashboard />;
       case 'portfolio': return <Portfolio />;
+      case 'market': return <Market />;
       case 'transactions': return <Transactions />;
       case 'goals': return <Goals />;
       case 'favorites': return <Favorites />;
-      case 'budget': return <BudgetAnalysis />;
       case 'dca': return <DCAPlanner />;
       case 'emergency': return <EmergencyFund />;
       case 'settings': return <Settings />;
