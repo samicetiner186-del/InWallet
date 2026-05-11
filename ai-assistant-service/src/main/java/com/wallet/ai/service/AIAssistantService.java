@@ -1,14 +1,24 @@
 package com.wallet.ai.service;
 
+import org.springframework.ai.openai.audio.transcription.AudioTranscriptionPrompt;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.openai.OpenAiAudioSpeechModel;
+import org.springframework.ai.openai.OpenAiAudioTranscriptionModel;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
 @Service
 public class AIAssistantService {
 
     private final ChatClient chatClient;
+    private final OpenAiAudioTranscriptionModel transcriptionModel;
+    private final OpenAiAudioSpeechModel speechModel;
 
-    public AIAssistantService(ChatClient.Builder chatClientBuilder) {
+    public AIAssistantService(ChatClient.Builder chatClientBuilder, 
+                              OpenAiAudioTranscriptionModel transcriptionModel,
+                              OpenAiAudioSpeechModel speechModel) {
+        this.transcriptionModel = transcriptionModel;
+        this.speechModel = speechModel;
         this.chatClient = chatClientBuilder
                 .defaultSystem("""
                         Sen, InWallet uygulamasının üst düzey, nesnel ve analitik Finans Uzmanı yapay zekasısın.
@@ -42,5 +52,16 @@ public class AIAssistantService {
                 .functions("getUserPortfolio", "getUserGoals", "getUserTransactions")
                 .call()
                 .content();
+    }
+
+    public byte[] chatWithVoice(Resource audioResource, Long userId) {
+        // 1. Sesi metne çevir (Speech-to-Text)
+        String userMessage = transcriptionModel.call(new AudioTranscriptionPrompt(audioResource)).getResult().getOutput();
+        
+        // 2. Metni asistan ile işle (Agentic Workflow)
+        String assistantResponse = chatWithAgent(userMessage, userId);
+        
+        // 3. Asistanın cevabını sese çevir (Text-to-Speech)
+        return speechModel.call(assistantResponse);
     }
 }

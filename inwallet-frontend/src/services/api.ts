@@ -106,8 +106,23 @@ export const goalApi = {
 // ─── AI Assistant Endpoint ──────────────────────────────
 export const aiApi = {
   chat: async (userId: number, message: string) => {
-    const res = await fetch(`${AI_URL}/api/ai/chat?userId=${userId}&message=${encodeURIComponent(message)}`);
+    const res = await fetch(`${AI_URL}/api/ai/chat?userId=${userId}&message=${encodeURIComponent(message)}`, {
+      method: 'POST',
+    });
     if (!res.ok) throw new Error('AI yanıt veremedi.');
     return res.text();
   },
+  chatWithAudio: async (userId: number, audioBlob: Blob) => {
+    const formData = new FormData();
+    // Use .webm or appropriate extension depending on MediaRecorder mimeType
+    formData.append('audio', audioBlob, 'voice.webm');
+    formData.append('userId', userId.toString());
+
+    const res = await fetch(`${AI_URL}/api/ai/chat/audio`, {
+      method: 'POST',
+      body: formData,
+    });
+    if (!res.ok) throw new Error('AI sesli yanıt veremedi.');
+    return res.arrayBuffer();
+  }
 };

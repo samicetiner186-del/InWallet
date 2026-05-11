@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import './AIChatWidget.css';
 import { aiApi } from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -11,6 +11,10 @@ const AIChatWidget: React.FC = () => {
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<BlobPart[]>([]);
 
   const toggleChat = () => setIsOpen(!isOpen);
 
@@ -33,7 +37,58 @@ const AIChatWidget: React.FC = () => {
     }
   };
 
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
 
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        await handleAudioSend(audioBlob);
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+    } catch (err) {
+      console.error("Mikrofon erişim hatası:", err);
+      alert("Mikrofon erişimine izin vermeniz gerekiyor.");
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+    }
+  };
+
+  const handleAudioSend = async (audioBlob: Blob) => {
+    setIsLoading(true);
+    setMessages(prev => [...prev, { sender: 'user', text: '🎤 (Sesli mesaj gönderildi)' }]);
+    try {
+      const audioBuffer = await aiApi.chatWithAudio(userId ?? 1, audioBlob);
+      
+      const blob = new Blob([audioBuffer], { type: 'audio/mpeg' });
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      audio.play();
+
+      setMessages(prev => [...prev, { sender: 'ai', text: '🔊 (Sesli yanıt dinleniyor...)' }]);
+    } catch (err) {
+      setMessages(prev => [...prev, { sender: 'error', text: 'Sesli yanıt alınırken hata oluştu.' }]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
   return (
     <div className="ai-chat-wrapper">
       {isOpen && (
@@ -50,16 +105,29 @@ const AIChatWidget: React.FC = () => {
             ))}
             {isLoading && <div className="chat-bubble ai">Yazıyor...</div>}
           </div>
-          <form className="ai-chat-input" onSubmit={sendMessage}>
-            <input 
-              type="text" 
-              placeholder="Portföyümün durumu nedir?..." 
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
+          <div className="ai-chat-input-wrapper">
+            <form className="ai-chat-input" onSubmit={sendMessage}>
+              <input 
+                type="text" 
+                placeholder="Portföyümün durumu nedir?..." 
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                disabled={isLoading || isRecording}
+              />
+              <button type="submit" disabled={isLoading || isRecording}>Gönder</button>
+            </form>
+            <button 
+              className={`mic-button ${isRecording ? 'recording' : ''}`}
+              onMouseDown={startRecording}
+              onMouseUp={stopRecording}
+              onTouchStart={startRecording}
+              onTouchEnd={stopRecording}
               disabled={isLoading}
-            />
-            <button type="submit" disabled={isLoading}>Gönder</button>
-          </form>
+              title="Konuşmak için basılı tutun"
+            >
+              {isRecording ? '🎙️' : '🎤'}
+            </button>
+          </div>
         </div>
       )}
       
