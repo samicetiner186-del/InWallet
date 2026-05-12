@@ -57,8 +57,14 @@ const Dashboard: React.FC = () => {
   }, [userId, refreshKey]);
 
   const stats = useMemo(() => {
-    const income = transactions.filter(t => (t.type || "").toUpperCase() === 'INCOME').reduce((s, t) => s + Number(t.amount || 0), 0);
-    const expense = transactions.filter(t => (t.type || "").toUpperCase() === 'EXPENSE').reduce((s, t) => s + Number(t.amount || 0), 0);
+    const income = transactions
+      .filter(t => ['INCOME', 'SELL'].includes((t.type || "").toUpperCase()))
+      .reduce((s, t) => s + Number(t.amount || 0), 0);
+    
+    const expense = transactions
+      .filter(t => ['EXPENSE', 'BUY', 'INVESTMENT'].includes((t.type || "").toUpperCase()))
+      .reduce((s, t) => s + Number(t.amount || 0), 0);
+    
     const cashBalance = income - expense;
     const assetValue = assets.reduce((sum, asset) => {
       const price = Number(marketPrices[asset.symbol] || asset.currentPrice || asset.averageBuyPrice || 0);

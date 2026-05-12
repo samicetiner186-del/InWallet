@@ -7,9 +7,10 @@ RUN chmod +x mvnw && ./mvnw dependency:go-offline -q
 COPY src ./src
 RUN ./mvnw clean package -DskipTests -q
 
-# Aşama 2: Run (küçük imaj)
+# Aşama 2: Run (standart imaj)
 FROM eclipse-temurin:17-jre-jammy
 WORKDIR /app
-COPY --from=builder /app/target/*.jar app.jar
+# Sadece ana jar dosyasını kopyaladığımızdan emin olalım
+COPY --from=builder /app/target/ai-assistant-service-*.jar app.jar
 EXPOSE 8081
 ENTRYPOINT ["java", "-jar", "app.jar"]
