@@ -1,5 +1,6 @@
 package com.wallet.portfolio.kafka;
 
+import com.wallet.portfolio.dto.TransactionEvent;
 import com.wallet.portfolio.entity.Transaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,15 +19,15 @@ public class TransactionProducer {
         this.kafkaTemplate = kafkaTemplate;
     }
 
-    public void sendTransactionEvent(Transaction transaction) {
+    public void sendTransactionEvent(TransactionEvent event) {
         try {
-            LOGGER.info("Kafka'ya islem gonderiliyor -> {}", transaction.getId());
-            var sendResult = kafkaTemplate.send(TOPIC, transaction.getId().toString(), transaction);
+            LOGGER.info("Kafka'ya islem gonderiliyor -> ID: {}", event.getTransactionId());
+            var sendResult = kafkaTemplate.send(TOPIC, event.getTransactionId().toString(), event);
             sendResult.whenComplete((result, ex) -> {
                 if (ex != null) {
                     LOGGER.error("Kafka event gonderimi basarısız: {}", ex.getMessage());
                 } else {
-                    LOGGER.info("Kafka event başarıyla gönderildi: {}", transaction.getId());
+                    LOGGER.info("Kafka event başarıyla gönderildi: {}", event.getTransactionId());
                 }
             });
         } catch (Exception e) {
