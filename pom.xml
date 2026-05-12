@@ -11,10 +11,17 @@
   <groupId>com.example</groupId>
   <artifactId>finance-app</artifactId>
   <version>0.0.1-SNAPSHOT</version>
+  <packaging>pom</packaging>
   <name>finance-app</name>
-  <description>Demo project for Spring Boot</description>
+  <description>InWallet Financial Intelligence Platform</description>
+  
+  <modules>
+    <module>portfolio-service</module>
+    <module>ai-assistant-service</module>
+  </modules>
+
   <properties>
-    <java.version>21</java.version>
+    <java.version>17</java.version>
   </properties>
   <dependencies>
     <dependency>

@@ -18,7 +18,7 @@ import java.util.Optional;
 public class AssetService {
 
     private final AssetRepository assetRepository;
-    private final MarketDataMockService marketDataService;
+    private final MarketDataService marketDataService;
 
     @Cacheable(value = "assets", key = "#userId")
     public List<Asset> getAssetsByUserId(Long userId) {

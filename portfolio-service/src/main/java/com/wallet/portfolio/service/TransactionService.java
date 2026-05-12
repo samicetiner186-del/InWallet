@@ -19,6 +19,8 @@ public class TransactionService {
     private static final Logger LOGGER = LoggerFactory.getLogger(TransactionService.class);
     private final TransactionRepository transactionRepository;
     private final AssetService assetService;
+    private final com.wallet.portfolio.repository.BudgetRepository budgetRepository;
+    private final com.wallet.portfolio.service.EmailService emailService;
     private final com.wallet.portfolio.kafka.TransactionProducer transactionProducer;
 
     public List<Transaction> getTransactionsByUserId(Long userId) {
@@ -28,16 +30,21 @@ public class TransactionService {
     @Transactional
     public Transaction createTransaction(Transaction transaction) {
         try {
-            // 1. İşlemi kaydet
+            // 1. Bütçe Kontrolü (Gider ise)
+            if ("EXPENSE".equalsIgnoreCase(transaction.getType())) {
+                checkBudgetLimit(transaction);
+            }
+
+            // 2. İşlemi kaydet
             Transaction saved = transactionRepository.save(transaction);
             LOGGER.info("Transaction saved to database: {}", saved.getId());
 
-            // 2. Eğer bir varlık (Asset) ile ilgiliyse, Asset bakiyesini güncelle
+            // 3. Eğer bir varlık (Asset) ile ilgiliyse, Asset bakiyesini güncelle
             if (saved.getAsset() != null) {
                 updateAssetBalance(saved);
             }
 
-            // 3. Kafka üzerinden asenkron event gönder
+            // 4. Kafka üzerinden asenkron event gönder
             notifyKafka(saved);
 
             return saved;
@@ -93,5 +100,30 @@ public class TransactionService {
     @Transactional
     public void deleteTransaction(Long id) {
         transactionRepository.deleteById(id);
+    }
+
+    private void checkBudgetLimit(Transaction t) {
+        if (t.getUser() == null || t.getCategory() == null) return;
+        
+        budgetRepository.findByUserIdAndCategory(t.getUser().getId(), t.getCategory())
+            .ifPresent(budget -> {
+                java.math.BigDecimal currentMonthExpense = transactionRepository.findByUserId(t.getUser().getId()).stream()
+                    .filter(tx -> "EXPENSE".equalsIgnoreCase(tx.getType()) && t.getCategory().equals(tx.getCategory()))
+                    .map(Transaction::getAmount)
+                    .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+                
+                java.math.BigDecimal totalAfterThis = currentMonthExpense.add(t.getAmount());
+                
+                if (totalAfterThis.compareTo(budget.getLimitAmount()) > 0) {
+                    LOGGER.warn("BÜTÇE AŞIMI! Kategori: {}, Limit: {}, Tahmini Toplam: {}", 
+                        t.getCategory(), budget.getLimitAmount(), totalAfterThis);
+                    
+                    emailService.sendBudgetWarning(
+                        t.getUser().getEmail(), 
+                        t.getCategory(), 
+                        budget.getLimitAmount().toString()
+                    );
+                }
+            });
     }
 }

@@ -30,6 +30,11 @@ public class User {
     @Column(nullable = false)
     private String role = "ROLE_USER"; // Örn: ROLE_USER, ROLE_ADMIN
 
+    @Column(nullable = false)
+    private boolean isEnabled = true;
+
+    private String verificationCode;
+
     // Aylık net gelir ve gider bilgisi
     private BigDecimal monthlyIncome;
     private BigDecimal monthlyExpense;

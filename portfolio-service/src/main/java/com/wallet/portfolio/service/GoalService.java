@@ -17,6 +17,7 @@ import java.util.List;
 public class GoalService {
 
     private final GoalRepository goalRepository;
+    private final EmailService emailService;
 
     public List<Goal> getGoalsByUserId(Long userId) {
         List<Goal> goals = goalRepository.findByUserId(userId);
@@ -63,6 +64,26 @@ public class GoalService {
         
         Goal saved = goalRepository.save(goal);
         calculateInflationAdjustment(saved);
+        return saved;
+    }
+
+    @Transactional
+    public Goal updateGoalAmount(Long goalId, BigDecimal amountToAdd) {
+        Goal goal = goalRepository.findById(goalId)
+                .orElseThrow(() -> new RuntimeException("Hedef bulunamadı"));
+        
+        BigDecimal oldAmount = goal.getCurrentAmount() != null ? goal.getCurrentAmount() : BigDecimal.ZERO;
+        BigDecimal newAmount = oldAmount.add(amountToAdd);
+        
+        goal.setCurrentAmount(newAmount);
+        Goal saved = goalRepository.save(goal);
+        calculateInflationAdjustment(saved);
+
+        // Eğer yeni ulaşıldıysa mail at
+        if (oldAmount.compareTo(goal.getTargetAmount()) < 0 && newAmount.compareTo(goal.getTargetAmount()) >= 0) {
+            emailService.sendGoalReachedEmail(goal.getUser().getEmail(), goal.getName());
+        }
+
         return saved;
     }
 

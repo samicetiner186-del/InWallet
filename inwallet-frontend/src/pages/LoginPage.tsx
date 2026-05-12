@@ -115,7 +115,7 @@ const LoginPage: React.FC = () => {
               marginTop: '8px', opacity: loading ? 0.7 : 1, transition: 'all 0.3s',
             }}
           >
-            {loading ? '⏳ Bekleniyor...' : (isRegister ? '✅ Kayıt Ol' : '🚀 Giriş Yap')}
+            {loading ? '⏳ Bekleniyor...' : (isRegister ? 'Kayıt Ol' : 'Giriş Yap')}
           </button>
         </form>
 

@@ -1,6 +1,6 @@
 package com.wallet.portfolio.controller;
 
-import com.wallet.portfolio.service.MarketDataMockService;
+import com.wallet.portfolio.service.MarketDataService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,19 +12,14 @@ import java.util.Map;
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 public class MarketController {
 
-    private final MarketDataMockService marketDataService;
+    private final MarketDataService marketDataService;
 
-    public MarketController(MarketDataMockService marketDataService) {
+    public MarketController(MarketDataService marketDataService) {
         this.marketDataService = marketDataService;
     }
 
     @GetMapping("/prices")
     public ResponseEntity<Map<String, BigDecimal>> getAllPrices() {
-        // Mock service'den tüm fiyatları dönüyoruz
-        return ResponseEntity.ok(Map.of(
-            "XAU", marketDataService.getPriceForSymbol("XAU"),
-            "AAPL", marketDataService.getPriceForSymbol("AAPL"),
-            "BTC", marketDataService.getPriceForSymbol("BTC")
-        ));
+        return ResponseEntity.ok(marketDataService.getAllPrices());
     }
 }

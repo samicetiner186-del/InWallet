@@ -27,6 +27,23 @@ InWallet, yüksek ölçeklenebilirlik, performans ve yapay zeka entegrasyonu (Ag
 
 ---
 
+## 📚 API Dokümantasyonu (Swagger & Postman)
+
+Projenin tüm API uç noktaları profesyonel bir şekilde dokümante edilmiştir. Jürinin ve geliştiricilerin incelemesi için iki farklı yöntem sunulmaktadır:
+
+### 1. Canlı Swagger Arayüzü
+Uygulama çalışırken aşağıdaki adresten etkileşimli dokümantasyona erişebilirsiniz:
+👉 **[http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)**
+
+### 2. Postman Koleksiyonu (OpenAPI Export)
+Proje kök dizininde bulunan [openapi.json](./openapi.json) dosyası, projenin en güncel API tanımını içerir. Bu dosyayı Postman'e aktarmak için:
+1. Postman uygulamasını açın.
+2. Sol üstteki **"Import"** butonuna tıklayın.
+3. [openapi.json](./openapi.json) dosyasını seçip içeri aktarın.
+4. Artık tüm API'ler, parametreler ve **Bearer Token (JWT)** yetkilendirme şeması Postman'de hazır durumdadır.
+
+---
+
 ## 💻 Projeyi Yerel Ortamda Çalıştırma (Kurulum)
 
 Ekip arkadaşlarının ve jürinin projeyi ayağa kaldırması için aşağıdaki adımları izlemesi gerekmektedir.
