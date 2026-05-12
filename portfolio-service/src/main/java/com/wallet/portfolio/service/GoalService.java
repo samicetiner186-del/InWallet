@@ -134,6 +134,22 @@ public class GoalService {
     }
 
     @Transactional
+    public Goal updateGoal(Long id, Goal goalDetails) {
+        Goal goal = goalRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Hedef bulunamadı"));
+
+        if (goalDetails.getName() != null) goal.setName(goalDetails.getName());
+        if (goalDetails.getTargetAmount() != null) goal.setTargetAmount(goalDetails.getTargetAmount());
+        if (goalDetails.getTargetDate() != null) goal.setTargetDate(goalDetails.getTargetDate());
+        if (goalDetails.getPriority() != 0) goal.setPriority(goalDetails.getPriority());
+        if (goalDetails.getExpectedInflationRate() != null) goal.setExpectedInflationRate(goalDetails.getExpectedInflationRate());
+        
+        Goal saved = goalRepository.save(goal);
+        calculateInflationAdjustment(saved);
+        return saved;
+    }
+
+    @Transactional
     public void deleteGoal(Long id) {
         goalRepository.deleteById(id);
     }

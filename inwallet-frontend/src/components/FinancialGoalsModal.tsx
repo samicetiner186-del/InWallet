@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 interface FinancialGoalsModalProps {
   isOpen: boolean;
   onClose: () => void;
+  goalToEdit?: any;
 }
 
 const templates = [
@@ -17,7 +18,7 @@ const templates = [
   { type: 'OTHER', icon: '🎯', label: 'Diğer' },
 ];
 
-const FinancialGoalsModal: React.FC<FinancialGoalsModalProps> = ({ isOpen, onClose }) => {
+const FinancialGoalsModal: React.FC<FinancialGoalsModalProps> = ({ isOpen, onClose, goalToEdit }) => {
   const { userId } = useAuth();
   const [newGoalTitle, setNewGoalTitle] = useState('');
   const [newGoalTarget, setNewGoalTarget] = useState('');
@@ -28,12 +29,26 @@ const FinancialGoalsModal: React.FC<FinancialGoalsModalProps> = ({ isOpen, onClo
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Modal açıldığında yapılacak işlemler (varsa)
-  }, [isOpen, userId]);
+    if (goalToEdit) {
+      setNewGoalTitle(goalToEdit.name || '');
+      setNewGoalTarget(goalToEdit.targetAmount?.toString() || '');
+      setSelectedType(goalToEdit.type || 'OTHER');
+      setPriority(goalToEdit.priority || 1);
+      setTargetDate(goalToEdit.targetDate ? goalToEdit.targetDate.split('T')[0] : '');
+      setInflationRate(goalToEdit.expectedInflationRate?.toString() || '45');
+    } else {
+      setNewGoalTitle('');
+      setNewGoalTarget('');
+      setSelectedType('OTHER');
+      setPriority(1);
+      setTargetDate(new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0]);
+      setInflationRate('45');
+    }
+  }, [isOpen, goalToEdit]);
 
   if (!isOpen) return null;
 
-  const handleAddGoal = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!userId) return;
 
@@ -42,23 +57,23 @@ const FinancialGoalsModal: React.FC<FinancialGoalsModalProps> = ({ isOpen, onClo
       name: newGoalTitle,
       type: selectedType,
       priority: Number(priority),
-      initialPrice: parseFloat(newGoalTarget),
       targetAmount: parseFloat(newGoalTarget),
-      currentAmount: 0,
       expectedInflationRate: parseFloat(inflationRate),
       targetDate: new Date(targetDate).toISOString()
     };
 
     try {
       setLoading(true);
-      await goalApi.createGoal(goalData);
-      setNewGoalTitle('');
-      setNewGoalTarget('');
-      
-      alert('Hayalin başarıyla planlandı! 🚀');
+      if (goalToEdit) {
+        await goalApi.updateGoal(goalToEdit.id, goalData);
+        alert('Hayalin başarıyla güncellendi! 🚀');
+      } else {
+        await goalApi.createGoal({ ...goalData, currentAmount: 0 });
+        alert('Hayalin başarıyla planlandı! 🚀');
+      }
       onClose();
     } catch (error: any) {
-      alert('Hata: ' + (error.message || 'Hedef eklenemedi'));
+      alert('Hata: ' + (error.message || 'İşlem başarısız'));
     } finally {
       setLoading(false);
     }
@@ -73,7 +88,7 @@ const FinancialGoalsModal: React.FC<FinancialGoalsModalProps> = ({ isOpen, onClo
         </div>
         
         <div className="modal-body">
-          <form className="add-goal-form" onSubmit={handleAddGoal} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <form className="add-goal-form" onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             
             <div>
               <label className="text-muted" style={{ fontSize: '13px', display: 'block', marginBottom: '10px' }}>Hayalin Ne?</label>
@@ -162,7 +177,7 @@ const FinancialGoalsModal: React.FC<FinancialGoalsModalProps> = ({ isOpen, onClo
             </div>
 
             <button type="submit" className="btn-primary" disabled={loading} style={{ padding: '16px', fontSize: '16px' }}>
-              {loading ? 'Planlanıyor...' : 'Hayalini Planla 🚀'}
+              {loading ? (goalToEdit ? 'Güncelleniyor...' : 'Planlanıyor...') : (goalToEdit ? 'Değişiklikleri Kaydet 💾' : 'Hayalini Planla 🚀')}
             </button>
           </form>
         </div>

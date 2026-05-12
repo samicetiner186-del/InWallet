@@ -78,26 +78,32 @@ public class MarketDataService {
 
     private BigDecimal fetchPriceFromYahoo(String symbol) {
         try {
-            String url = "https://query1.finance.yahoo.com/v7/finance/quote?symbols=" + symbol;
+            // query2 ve v8/finance/chart uç noktası genellikle daha kararlıdır
+            String url = "https://query2.finance.yahoo.com/v8/finance/chart/" + symbol + "?interval=1m&range=1d";
             HttpHeaders headers = new HttpHeaders();
-            headers.set("User-Agent", "Mozilla/5.0");
+            headers.set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36");
+            headers.set("Accept", "application/json");
+            
             HttpEntity<String> entity = new HttpEntity<>(headers);
 
             ResponseEntity<Map> responseEntity = restTemplate.exchange(url, HttpMethod.GET, entity, Map.class);
             Map<String, Object> response = responseEntity.getBody();
             
-            if (response != null && response.containsKey("quoteResponse")) {
-                Map<String, Object> quoteResponse = (Map<String, Object>) response.get("quoteResponse");
-                List<Map<String, Object>> result = (List<Map<String, Object>>) quoteResponse.get("result");
+            if (response != null && response.containsKey("chart")) {
+                Map<String, Object> chart = (Map<String, Object>) response.get("chart");
+                List<Map<String, Object>> result = (List<Map<String, Object>>) chart.get("result");
                 
                 if (result != null && !result.isEmpty()) {
-                    Object priceObj = result.get(0).get("regularMarketPrice");
+                    Map<String, Object> meta = (Map<String, Object>) result.get(0).get("meta");
+                    Object priceObj = meta.get("regularMarketPrice");
                     if (priceObj != null) {
                         return new BigDecimal(priceObj.toString()).setScale(2, RoundingMode.HALF_UP);
                     }
                 }
             }
+            Thread.sleep(1000); 
         } catch (Exception e) {
+            LOGGER.warn("Yahoo API hatası ({}): {}", symbol, e.getMessage());
             return null;
         }
         return null;
