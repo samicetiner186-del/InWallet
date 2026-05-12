@@ -3,7 +3,6 @@ package com.wallet.portfolio.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "goals")
@@ -43,7 +42,8 @@ public class Goal {
     private BigDecimal expectedInflationRate;
 
     // Hedefin ne zamana kadar gerçekleşmesinin planlandığı
-    private LocalDateTime targetDate;
+    @com.fasterxml.jackson.annotation.JsonFormat(shape = com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSX")
+    private java.time.OffsetDateTime targetDate;
 
     // Şu ana kadar hedefe ne kadar yaklaşıldı (%)
     private BigDecimal completionPercentage;

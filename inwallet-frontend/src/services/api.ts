@@ -125,7 +125,10 @@ export const assetApi = {
       headers: authHeaders(),
       body: JSON.stringify(asset),
     });
-    if (!res.ok) throw new Error('Varlık eklenemedi.');
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(errorText || 'Varlık eklenemedi.');
+    }
     return res.json();
   },
 
@@ -152,7 +155,10 @@ export const transactionApi = {
       headers: authHeaders(),
       body: JSON.stringify(transaction),
     });
-    if (!res.ok) throw new Error('İşlem oluşturulamadı.');
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(errorText || 'İşlem oluşturulamadı.');
+    }
     return res.json();
   },
 
@@ -179,7 +185,10 @@ export const goalApi = {
       headers: authHeaders(),
       body: JSON.stringify(goal),
     });
-    if (!res.ok) throw new Error('Hedef oluşturulamadı.');
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(errorText || 'Hedef oluşturulamadı.');
+    }
     return res.json();
   },
 

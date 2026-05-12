@@ -3,7 +3,6 @@ package com.wallet.portfolio.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "transactions")
@@ -43,12 +42,13 @@ public class Transaction {
     private BigDecimal pricePerUnit;
 
     @Column(name = "transaction_date")
-    private LocalDateTime transactionDate;
+    @com.fasterxml.jackson.annotation.JsonFormat(shape = com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSX")
+    private java.time.OffsetDateTime transactionDate;
 
     @PrePersist
     protected void onCreate() {
         if (transactionDate == null) {
-            transactionDate = LocalDateTime.now();
+            transactionDate = java.time.OffsetDateTime.now();
         }
     }
 }

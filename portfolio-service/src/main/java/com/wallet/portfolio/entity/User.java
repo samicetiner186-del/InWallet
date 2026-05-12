@@ -3,7 +3,6 @@ package com.wallet.portfolio.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "users")
@@ -40,7 +39,7 @@ public class User {
     private BigDecimal monthlyExpense;
     
     @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    private java.time.OffsetDateTime createdAt;
     
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
@@ -56,6 +55,6 @@ public class User {
     
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
+        createdAt = java.time.OffsetDateTime.now();
     }
 }

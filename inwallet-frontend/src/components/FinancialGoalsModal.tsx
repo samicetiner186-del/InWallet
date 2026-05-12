@@ -55,13 +55,12 @@ const FinancialGoalsModal: React.FC<FinancialGoalsModalProps> = ({ isOpen, onClo
       setNewGoalTitle('');
       setNewGoalTarget('');
       
-      setTimeout(async () => {
-        alert('Hayalin başarıyla planlandı! 🚀');
-        onClose();
-      }, 300);
+      alert('Hayalin başarıyla planlandı! 🚀');
+      onClose();
     } catch (error: any) {
-      setLoading(false);
       alert('Hata: ' + (error.message || 'Hedef eklenemedi'));
+    } finally {
+      setLoading(false);
     }
   };
 

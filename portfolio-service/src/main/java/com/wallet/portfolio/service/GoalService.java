@@ -8,7 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
@@ -81,7 +80,7 @@ public class GoalService {
             return;
         }
 
-        long monthsToGoal = ChronoUnit.MONTHS.between(LocalDateTime.now(), goal.getTargetDate());
+        long monthsToGoal = java.time.temporal.ChronoUnit.MONTHS.between(java.time.OffsetDateTime.now(), goal.getTargetDate());
         if (monthsToGoal <= 0) {
             goal.setCurrentTargetPrice(goal.getTargetAmount());
             return;
@@ -104,6 +103,9 @@ public class GoalService {
         }
         if (goal.getTargetDate() == null) {
             throw new IllegalArgumentException("Hedef tarihi belirtilmelidir.");
+        }
+        if (goal.getUser() == null || goal.getUser().getId() == null) {
+            throw new IllegalArgumentException("Hedef için kullanıcı bilgisi zorunludur.");
         }
         
         Goal saved = goalRepository.save(goal);

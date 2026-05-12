@@ -5,7 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -18,5 +17,5 @@ public class TransactionEvent {
     private String type;
     private BigDecimal amount;
     private BigDecimal pricePerUnit;
-    private LocalDateTime transactionDate;
+    private java.time.OffsetDateTime transactionDate;
 }

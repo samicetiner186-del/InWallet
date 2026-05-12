@@ -3,14 +3,14 @@ server:
 
 jwt:
   secret: InWallet2026HackathonSecretKeyForJWTMustBe256BitsLong
-  expiration: 3600000      # 1 saat (ms) - Güvenlik için JWT süresini kısalttık
-  refreshExpiration: 604800000 # 7 gün (ms) - Refresh token uzun süreli kalabilir
+  expiration: 86400000      # 24 saat (ms) - Hackathon boyunca sorunsuz çalışma için uzatıldı
+  refreshExpiration: 604800000 # 7 gün (ms)
 
 spring:
   application:
     name: portfolio-service
   datasource:
-    url: jdbc:postgresql://localhost:5433/wallet_db
+    url: jdbc:postgresql://postgres:5432/wallet_db
     username: user
     password: password
     driver-class-name: org.postgresql.Driver
@@ -26,16 +26,16 @@ spring:
 
   data:
     redis:
-      host: localhost
+      host: redis
       port: 6379
 
   cache:
     type: redis
     redis:
-      time-to-live: 600000   # 10 dakika (ms cinsinden)
+      time-to-live: 600000
 
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: kafka:29092
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
@@ -59,3 +59,9 @@ spring:
           starttls:
             enable: true
             required: true
+
+logging:
+  level:
+    org.springframework.web: DEBUG
+    org.hibernate.SQL: DEBUG
+    com.wallet.portfolio: DEBUG
