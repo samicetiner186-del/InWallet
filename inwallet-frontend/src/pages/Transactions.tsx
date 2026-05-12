@@ -221,30 +221,197 @@ const Transactions: React.FC = () => {
         </div>
       </div>
 
-      {/* Modern Modal */}
+      {/* Premium Modal */}
       {isModalOpen && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div className="glass-card animate-slide-up" style={{ width: '400px', padding: '30px' }}>
-            <h3 style={{ marginTop: 0 }}>Yeni İşlem Kaydı</h3>
-            <form onSubmit={handleAddTransaction} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <input type="text" value={newTitle} onChange={e => setNewTitle(e.target.value)} placeholder="Açıklama" required />
-              <input type="number" value={newAmount} onChange={e => setNewAmount(e.target.value)} placeholder="Miktar (₺)" required />
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                <select value={newType} onChange={e => setNewType(e.target.value)}>
-                  <option value="expense">Gider</option>
-                  <option value="income">Gelir</option>
-                </select>
-                <select value={newCategory} onChange={e => setNewCategory(e.target.value)}>
+        <div style={{
+          position: 'fixed', inset: 0,
+          background: 'rgba(0,0,0,0.55)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 1000,
+          padding: '20px',
+        }}>
+          <div style={{
+            width: '100%', maxWidth: '480px',
+            background: 'var(--bg-secondary)',
+            border: '1px solid var(--border-color)',
+            borderRadius: '24px',
+            padding: '32px',
+            boxShadow: '0 24px 64px rgba(0,0,0,0.25)',
+            animation: 'fadeIn 0.2s ease',
+          }}>
+            {/* Modal Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: 'var(--text-primary)' }}>Yeni İşlem</h3>
+                <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: 'var(--text-secondary)' }}>Gelir veya gider ekleyin</p>
+              </div>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                style={{
+                  width: '36px', height: '36px', borderRadius: '50%',
+                  border: '1px solid var(--border-color)',
+                  background: 'transparent',
+                  color: 'var(--text-secondary)',
+                  fontSize: '20px', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  transition: 'all 0.2s ease',
+                }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--border-color)'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
+              >×</button>
+            </div>
+
+            {/* Type Selector */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '20px' }}>
+              <button
+                type="button"
+                onClick={() => setNewType('expense')}
+                style={{
+                  padding: '12px',
+                  borderRadius: '14px',
+                  border: `2px solid ${newType === 'expense' ? '#ef4444' : 'var(--border-color)'}`,
+                  background: newType === 'expense' ? 'rgba(239,68,68,0.08)' : 'transparent',
+                  color: newType === 'expense' ? '#ef4444' : 'var(--text-secondary)',
+                  fontWeight: 700, fontSize: '14px', cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                }}
+              >Gider</button>
+              <button
+                type="button"
+                onClick={() => setNewType('income')}
+                style={{
+                  padding: '12px',
+                  borderRadius: '14px',
+                  border: `2px solid ${newType === 'income' ? '#10b981' : 'var(--border-color)'}`,
+                  background: newType === 'income' ? 'rgba(16,185,129,0.08)' : 'transparent',
+                  color: newType === 'income' ? '#10b981' : 'var(--text-secondary)',
+                  fontWeight: 700, fontSize: '14px', cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                }}
+              >Gelir</button>
+            </div>
+
+            <form onSubmit={handleAddTransaction} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              {/* Description */}
+              <div>
+                <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', letterSpacing: '0.5px', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>Açıklama</label>
+                <input
+                  type="text"
+                  value={newTitle}
+                  onChange={e => setNewTitle(e.target.value)}
+                  placeholder="Örn: Market alışverişi"
+                  required
+                  style={{
+                    width: '100%', padding: '12px 16px',
+                    borderRadius: '12px',
+                    border: '1.5px solid var(--border-color)',
+                    background: 'var(--bg-primary)',
+                    color: 'var(--text-primary)',
+                    fontSize: '14px',
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                    transition: 'border-color 0.2s ease',
+                  }}
+                  onFocus={e => { e.currentTarget.style.borderColor = 'var(--accent-blue)'; }}
+                  onBlur={e => { e.currentTarget.style.borderColor = 'var(--border-color)'; }}
+                />
+              </div>
+
+              {/* Amount */}
+              <div>
+                <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', letterSpacing: '0.5px', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>Tutar (₺)</label>
+                <input
+                  type="number"
+                  value={newAmount}
+                  onChange={e => setNewAmount(e.target.value)}
+                  placeholder="0.00"
+                  required
+                  min="0"
+                  step="any"
+                  style={{
+                    width: '100%', padding: '12px 16px',
+                    borderRadius: '12px',
+                    border: '1.5px solid var(--border-color)',
+                    background: 'var(--bg-primary)',
+                    color: 'var(--text-primary)',
+                    fontSize: '20px', fontWeight: 700,
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                    transition: 'border-color 0.2s ease',
+                  }}
+                  onFocus={e => { e.currentTarget.style.borderColor = 'var(--accent-blue)'; }}
+                  onBlur={e => { e.currentTarget.style.borderColor = 'var(--border-color)'; }}
+                />
+              </div>
+
+              {/* Category */}
+              <div>
+                <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', letterSpacing: '0.5px', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>Kategori</label>
+                <select
+                  value={newCategory}
+                  onChange={e => setNewCategory(e.target.value)}
+                  style={{
+                    width: '100%', padding: '12px 16px',
+                    borderRadius: '12px',
+                    border: '1.5px solid var(--border-color)',
+                    background: 'var(--bg-primary)',
+                    color: 'var(--text-primary)',
+                    fontSize: '14px',
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                    cursor: 'pointer',
+                  }}
+                >
                   <option value="Market">Market</option>
                   <option value="Maaş">Maaş</option>
                   <option value="Ulaşım">Ulaşım</option>
                   <option value="Kira">Kira</option>
+                  <option value="Faturalar">Faturalar</option>
+                  <option value="Eğlence">Eğlence</option>
+                  <option value="Yatırım">Yatırım</option>
                   <option value="Diğer">Diğer</option>
                 </select>
               </div>
-              <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
-                <button type="button" onClick={() => setIsModalOpen(false)} style={{ flex: 1 }}>İptal</button>
-                <button type="submit" className="btn-primary" style={{ flex: 1 }}>Kaydet</button>
+
+              {/* Action Buttons */}
+              <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  style={{
+                    flex: 1, padding: '13px',
+                    borderRadius: '12px',
+                    border: '1.5px solid var(--border-color)',
+                    background: 'transparent',
+                    color: 'var(--text-secondary)',
+                    fontSize: '14px', fontWeight: 600,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                  }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--border-color)'; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
+                >İptal</button>
+                <button
+                  type="submit"
+                  style={{
+                    flex: 2, padding: '13px',
+                    borderRadius: '12px',
+                    border: 'none',
+                    background: newType === 'income'
+                      ? 'linear-gradient(135deg, #059669, #10b981)'
+                      : 'linear-gradient(135deg, #dc2626, #ef4444)',
+                    color: 'white',
+                    fontSize: '14px', fontWeight: 700,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    boxShadow: newType === 'income'
+                      ? '0 4px 15px rgba(16,185,129,0.3)'
+                      : '0 4px 15px rgba(239,68,68,0.3)',
+                  }}
+                >
+                  {newType === 'income' ? 'Gelir Kaydet' : 'Gider Kaydet'}
+                </button>
               </div>
             </form>
           </div>

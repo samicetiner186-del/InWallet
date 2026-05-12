@@ -6,7 +6,7 @@ import FinancialGoalsModal from '../components/FinancialGoalsModal';
 const Goals: React.FC = () => {
   const { userId } = useAuth();
   const [goalsList, setGoalsList] = useState<any[]>([]);
-  const [userData, setUserData] = useState<any>(null);
+  const [_userData, setUserData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -55,7 +55,7 @@ const Goals: React.FC = () => {
       {/* Header Section */}
       <div className="col-span-12" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
         <div>
-          <h2 style={{ margin: 0, fontSize: '32px', fontWeight: 800 }} className="heading-gradient">Finansal Hedeflerin</h2>
+          <h2 style={{ margin: 0, fontSize: '32px', fontWeight: 800, color: 'var(--text-primary)' }}>Finansal Hedeflerin</h2>
           <p style={{ color: 'var(--text-secondary)', margin: '8px 0 0 0' }}>Hayallerine giden yolda ne kadar yaklaştığını takip et.</p>
         </div>
         <button onClick={() => setIsModalOpen(true)} className="btn-primary" style={{ padding: '12px 24px', borderRadius: '12px', fontSize: '15px', fontWeight: 700 }}>
