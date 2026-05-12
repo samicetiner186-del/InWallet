@@ -33,6 +33,10 @@ public class AssetService {
         return assets;
     }
 
+    public Asset getAssetById(Long id) {
+        return assetRepository.findById(id).orElse(null);
+    }
+
     @Transactional
     @CacheEvict(value = "assets", allEntries = true)
     public Asset createOrUpdateAsset(Asset newAsset) {
@@ -45,23 +49,34 @@ public class AssetService {
 
         if (existingAssetOpt.isPresent()) {
             Asset existingAsset = existingAssetOpt.get();
+            BigDecimal newQuantity = newAsset.getQuantity() != null ? newAsset.getQuantity() : BigDecimal.ZERO;
+            BigDecimal totalQuantity = existingAsset.getQuantity().add(newQuantity);
             
-            // Ağırlıklı Ortalama Maliyet Hesaplama
-            // Yeni Maliyet = ((Eski Adet * Eski Fiyat) + (Yeni Adet * Yeni Fiyat)) / (Toplam Adet)
-            BigDecimal totalQuantity = existingAsset.getQuantity().add(newAsset.getQuantity());
-            
-            BigDecimal oldTotalValue = existingAsset.getQuantity().multiply(existingAsset.getAverageBuyPrice());
-            BigDecimal newTotalValue = newAsset.getQuantity().multiply(newAsset.getAverageBuyPrice());
-            
-            BigDecimal newAvgPrice = oldTotalValue.add(newTotalValue)
-                    .divide(totalQuantity, 4, RoundingMode.HALF_UP);
+            // Eğer yeni miktar 0 veya negatifse varlığı silebiliriz veya 0 olarak bırakabiliriz
+            if (totalQuantity.compareTo(BigDecimal.ZERO) <= 0) {
+                existingAsset.setQuantity(BigDecimal.ZERO);
+                // Ortalama fiyatı sıfırlamaya gerek yok, kalsın
+                return assetRepository.save(existingAsset);
+            }
+
+            // Sadece alış (BUY) işlemlerinde maliyet güncellenir.
+            // Satışta (miktar azaldığında) maliyet değişmez.
+            if (newQuantity.compareTo(BigDecimal.ZERO) > 0) {
+                BigDecimal oldTotalValue = existingAsset.getQuantity().multiply(existingAsset.getAverageBuyPrice());
+                BigDecimal newTotalValue = newQuantity.multiply(newAsset.getAverageBuyPrice() != null ? newAsset.getAverageBuyPrice() : BigDecimal.ZERO);
+                
+                BigDecimal newAvgPrice = oldTotalValue.add(newTotalValue)
+                        .divide(totalQuantity, 4, RoundingMode.HALF_UP);
+                existingAsset.setAverageBuyPrice(newAvgPrice);
+            }
             
             existingAsset.setQuantity(totalQuantity);
-            existingAsset.setAverageBuyPrice(newAvgPrice);
-            existingAsset.setType(newAsset.getType()); // Tür değişmiş olabilir
+            if (newAsset.getType() != null) existingAsset.setType(newAsset.getType());
             
             return assetRepository.save(existingAsset);
         } else {
+            if (newAsset.getAverageBuyPrice() == null) newAsset.setAverageBuyPrice(BigDecimal.ZERO);
+            if (newAsset.getQuantity() == null) newAsset.setQuantity(BigDecimal.ZERO);
             return assetRepository.save(newAsset);
         }
     }

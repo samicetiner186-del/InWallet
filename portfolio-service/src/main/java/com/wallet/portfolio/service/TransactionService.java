@@ -30,6 +30,11 @@ public class TransactionService {
     @Transactional
     public Transaction createTransaction(Transaction transaction) {
         try {
+            // 0. Kullanıcı Kontrolü
+            if (transaction.getUser() == null || transaction.getUser().getId() == null) {
+                throw new IllegalArgumentException("İşlem için kullanıcı bilgisi zorunludur.");
+            }
+
             // 1. Bütçe Kontrolü (Gider ise)
             if ("EXPENSE".equalsIgnoreCase(transaction.getType())) {
                 checkBudgetLimit(transaction);
@@ -56,10 +61,24 @@ public class TransactionService {
 
     private void updateAssetBalance(Transaction t) {
         try {
+            if (t.getAsset() == null) return;
+            
+            // Eğer symbol veya type eksikse (frontend genelde sadece ID gönderir), veritabanından çek
+            String symbol = t.getAsset().getSymbol();
+            String type = t.getAsset().getType();
+            
+            if (symbol == null || type == null) {
+                com.wallet.portfolio.entity.Asset dbAsset = assetService.getAssetById(t.getAsset().getId());
+                if (dbAsset != null) {
+                    symbol = dbAsset.getSymbol();
+                    type = dbAsset.getType();
+                }
+            }
+
             Asset assetToUpdate = Asset.builder()
                     .user(t.getUser())
-                    .symbol(t.getAsset().getSymbol())
-                    .type(t.getAsset().getType())
+                    .symbol(symbol)
+                    .type(type)
                     .quantity(t.getAmount()) // İşlem miktarı
                     .averageBuyPrice(t.getPricePerUnit()) // İşlem fiyatı
                     .build();
