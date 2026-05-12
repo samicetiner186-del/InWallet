@@ -30,6 +30,7 @@ const Goals: React.FC = () => {
   const [_userData, setUserData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [goalToEdit, setGoalToEdit] = useState<any>(null);
 
   const fetchGoalsAndUser = async () => {
     if (!userId) return;
@@ -71,6 +72,16 @@ const Goals: React.FC = () => {
     }
   };
 
+  const handleEditGoal = (goal: any) => {
+    setGoalToEdit(goal);
+    setIsModalOpen(true);
+  };
+
+  const handleOpenNewGoalModal = () => {
+    setGoalToEdit(null);
+    setIsModalOpen(true);
+  };
+
   return (
     <div className="dashboard-grid animate-fade-in">
       <div className="col-span-12" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
@@ -78,7 +89,7 @@ const Goals: React.FC = () => {
           <h2 style={{ margin: 0, fontSize: '32px', fontWeight: 800, color: 'var(--text-primary)' }}>Finansal Hedeflerin</h2>
           <p style={{ color: 'var(--text-secondary)', margin: '8px 0 0 0' }}>Hayallerine giden yolda ne kadar yaklaştığını takip et.</p>
         </div>
-        <button onClick={() => setIsModalOpen(true)} className="btn-primary" style={{ padding: '12px 24px', borderRadius: '12px', fontSize: '15px', fontWeight: 700 }}>
+        <button onClick={handleOpenNewGoalModal} className="btn-primary" style={{ padding: '12px 24px', borderRadius: '12px', fontSize: '15px', fontWeight: 700 }}>
           + Yeni Hedef Ekle
         </button>
       </div>
@@ -109,7 +120,7 @@ const Goals: React.FC = () => {
             <div style={{ fontSize: '48px', marginBottom: '20px' }}>🚀</div>
             <h3 style={{ margin: 0 }}>Henüz bir hedefin yok mu?</h3>
             <p style={{ color: 'var(--text-secondary)', marginBottom: '32px' }}>Hemen birikim yapmaya başlamak için ilk hedefini oluştur!</p>
-            <button onClick={() => setIsModalOpen(true)} className="btn-primary" style={{ padding: '12px 32px' }}>Şimdi Başla</button>
+            <button onClick={handleOpenNewGoalModal} className="btn-primary" style={{ padding: '12px 32px' }}>Şimdi Başla</button>
           </div>
         ) : (
           goalsList.map(goal => {
@@ -132,13 +143,22 @@ const Goals: React.FC = () => {
                    {getGoalIcon(goal.type, progress)}
                 </div>
 
-                <button 
-                  onClick={() => handleDeleteGoal(goal.id)}
-                  style={{ position: 'absolute', top: '15px', right: '15px', background: 'rgba(239, 68, 68, 0.1)', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '14px', width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}
-                  title="Hedefi Sil"
-                >
-                  🗑️
-                </button>
+                <div style={{ position: 'absolute', top: '15px', right: '15px', display: 'flex', gap: '8px', zIndex: 10 }}>
+                  <button 
+                    onClick={() => handleEditGoal(goal)}
+                    style={{ background: 'rgba(59, 130, 246, 0.1)', border: 'none', color: 'var(--accent-blue)', cursor: 'pointer', fontSize: '14px', width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    title="Hedefi Düzenle"
+                  >
+                    ✏️
+                  </button>
+                  <button 
+                    onClick={() => handleDeleteGoal(goal.id)}
+                    style={{ background: 'rgba(239, 68, 68, 0.1)', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '14px', width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    title="Hedefi Sil"
+                  >
+                    🗑️
+                  </button>
+                </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', position: 'relative', zIndex: 1 }}>
                   <div style={{ maxWidth: '70%' }}>
@@ -206,8 +226,10 @@ const Goals: React.FC = () => {
 
       <FinancialGoalsModal 
         isOpen={isModalOpen} 
+        goalToEdit={goalToEdit}
         onClose={() => {
           setIsModalOpen(false);
+          setGoalToEdit(null);
           fetchGoalsAndUser();
         }} 
       />

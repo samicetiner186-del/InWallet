@@ -201,6 +201,16 @@ export const goalApi = {
     return true;
   },
 
+  updateGoal: async (goalId: number, goal: object) => {
+    const res = await request(`${BASE_URL}/api/goals/${goalId}`, {
+      method: 'PUT',
+      headers: authHeaders(),
+      body: JSON.stringify(goal),
+    });
+    if (!res.ok) throw new Error('Hedef güncellenemedi.');
+    return res.json();
+  },
+
   updateGoalProgress: async (goalId: number, amount: number) => {
     const res = await request(`${BASE_URL}/api/goals/${goalId}/add-progress?amount=${amount}`, {
       method: 'POST',

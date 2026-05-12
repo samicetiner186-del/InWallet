@@ -1,101 +1,99 @@
-# 🚀 Hackathon'26: InWallet - Kişisel Finans ve AI Asistanı
+# 🚀 InWallet - Hackathon'26 Kurulum ve Geliştirme Rehberi
 
-InWallet, **Hackathon'26** "Finans Temalı AI Uygulamaları" kategorisi için geliştirilmiş, üretken yapay zeka (GenAI) destekli akıllı bir kişisel finans ve portföy yönetim sistemidir. 
-
-Sıradan bir cüzdan uygulamasından farklı olarak, InWallet kullanıcının gelirini, giderlerini ve yatırım hedeflerini (ev, araba vb.) anlık enflasyon ve piyasa verileriyle (Altın, Borsa, Kripto) analiz eder. İçerisinde barındırdığı **Agentic AI** yapısı sayesinde kullanıcının veritabanındaki portföyünü otonom olarak sorgulayabilir ve kişiselleştirilmiş finansal tavsiyeler verebilir.
+InWallet, üretken yapay zeka destekli akıllı bir kişisel finans ve portföy yönetim sistemidir. Bu rehber, ekibinizin projeyi sorunsuz bir şekilde ayağa kaldırması ve beraber çalışabilmesi için hazırlanmıştır.
 
 ---
 
-## 🛠️ Teknik Altyapı ve Mimari
+## 🛠️ Tek Komutla Başlatma (Hızlı Kurulum)
 
-InWallet, yüksek ölçeklenebilirlik, performans ve yapay zeka entegrasyonu (Agentic Tools) hedeflenerek modern yazılım mimarisiyle tasarlanmıştır.
+Projeyi ilk kez ayağa kaldırırken tüm servislerin (Veritabanı, Redis, Kafka, Backend, Frontend) birbiriyle uyumlu çalışması için Docker kullanıyoruz.
 
-### Kullanılan Teknolojiler
-- **Backend:** Java 17, Spring Boot 3, Spring Data JPA
-- **Yapay Zeka (Agentic AI):** Spring AI (Google Gemini / OpenAI Entegrasyonu)
-- **Veritabanı:** PostgreSQL (Kullanıcı, Hedef, Varlık ve İşlem verileri)
-- **Önbellekleme:** Redis (Piyasa verilerinin hızlı okunması)
-- **Olay Güdümlü Mimari (Event-Driven):** Apache Kafka & Zookeeper
-- **Loglama ve RAG Verisi:** Elasticsearch
-- **Konteynerleştirme:** Docker & Docker Compose
-- **Frontend (Geliştirme Aşamasında):** ReactJS, TypeScript
+**Önemli:** Bilgisayarınızda **Docker Desktop**'ın kurulu ve çalışır durumda olduğundan emin olun.
 
-### Temel Özellikler
-1. **Dinamik Portföy Yönetimi:** Altın, Hisse Senedi ve Kripto gibi varlıkların canlı simüle edilen veriler üzerinden kar/zarar hesabı.
-2. **AI Function Calling (Agentic Yapı):** Sistemdeki yapay zeka, doğrudan Java fonksiyonlarını (örn: `getUserPortfolio`) tetikleyerek kullanıcının verilerine erişebilir ve bağlamsal (RAG) cevaplar üretebilir.
-3. **Akıllı Hedefler:** Belirlenen hedeflerin tahmini enflasyon oranlarıyla güncellenmesi.
-
----
-
-## 📚 API Dokümantasyonu (Swagger & Postman)
-
-Projenin tüm API uç noktaları profesyonel bir şekilde dokümante edilmiştir. Jürinin ve geliştiricilerin incelemesi için iki farklı yöntem sunulmaktadır:
-
-### 1. Canlı Swagger Arayüzü
-Uygulama çalışırken aşağıdaki adresten etkileşimli dokümantasyona erişebilirsiniz:
-👉 **[http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)**
-
-### 2. Postman Koleksiyonu (OpenAPI Export)
-Proje kök dizininde bulunan [openapi.json](./openapi.json) dosyası, projenin en güncel API tanımını içerir. Bu dosyayı Postman'e aktarmak için:
-1. Postman uygulamasını açın.
-2. Sol üstteki **"Import"** butonuna tıklayın.
-3. [openapi.json](./openapi.json) dosyasını seçip içeri aktarın.
-4. Artık tüm API'ler, parametreler ve **Bearer Token (JWT)** yetkilendirme şeması Postman'de hazır durumdadır.
-
----
-
-## 💻 Projeyi Yerel Ortamda Çalıştırma (Kurulum)
-
-Ekip arkadaşlarının ve jürinin projeyi ayağa kaldırması için aşağıdaki adımları izlemesi gerekmektedir.
-
-### Gereksinimler
-- Java 17+
-- Maven
-- Docker ve Docker Compose
-- Geçerli bir OpenAI veya Google Gemini API Key.
-
-### 1. Servisleri Ayağa Kaldırma (Altyapı)
-Veritabanı, Redis, Kafka ve Elasticsearch'ü çalıştırmak için ana dizindeki docker dosyasını kullanın:
+### 1. Adım: API Anahtarlarını Ayarlama
+Proje kök dizininde bir `.env` dosyası oluşturun (veya `.env.example` dosyasını kopyalayın) ve içine API anahtarlarınızı yazın:
 ```bash
-docker-compose up -d
+OPENAI_API_KEY=your_openai_key_here
+GOOGLE_GEMINI_API_KEY=your_gemini_key_here
 ```
 
-### 2. Spring Boot Uygulamasını Başlatma
-`application.yml` veya ortam değişkenleri (Environment Variables) üzerinden `OPENAI_API_KEY` tanımını yaptıktan sonra projeyi başlatın:
+### 2. Adım: Tüm Sistemi Başlatma
+Terminalinizi açın ve ana dizinde şu komutu çalıştırın:
 ```bash
-cd inwallet-service
-./mvnw spring-boot:run
+docker compose up --build -d
 ```
+*Bu komut; veritabanını hazırlar, backend servislerini derler ve frontend'i ayağa kaldırır.*
 
 ---
 
-## 🤝 Takım Arkadaşları İçin Katkı Sağlama Rehberi (Contributing)
+## 🔍 Servislerin Durumu (Nereden Erişirim?)
 
-Bu proje Hackathon'26 için geliştirilmektedir. Birlikte daha hızlı ve çakışma (conflict) olmadan çalışabilmek için lütfen aşağıdaki kurallara uyalım:
+Sistem ayağa kalktığında şu adresleri kullanabilirsiniz:
 
-### 1. Branch (Dal) Stratejisi
-*   Ana dalımız (production) her zaman **`main`** dalıdır ve buraya doğrudan kod yazmak/pushlamak **yasaktır**.
-*   Geliştirme yaparken kendi adınıza veya özelliğe göre bir dal açın:
-    *   Özellik eklerken: `feature/ai-chat-ui` veya `feature/auth-service`
-    *   Hata çözerken: `bugfix/redis-connection`
+| Servis | Adres | Açıklama |
+| :--- | :--- | :--- |
+| **Frontend** | [http://localhost:5173](http://localhost:5173) | Kullanıcı arayüzü |
+| **Backend API** | [http://localhost:8080](http://localhost:8080) | Ana servis |
+| **Swagger UI** | [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html) | API Dokümantasyonu |
+| **AI Service** | [http://localhost:8081](http://localhost:8081) | Yapay zeka asistanı |
+
+---
+
+## 🆘 Olası Hatalar ve Çözümleri (Troubleshooting)
+
+### 1. "Port 8080 (veya 5173) is already in use"
+**Hata:** Bilgisayarınızda başka bir uygulama bu portu kullanıyor olabilir.
+**Çözüm:** Terminalden `docker compose down` komutunu çalıştırın ve portu kullanan diğer uygulamaları kapatın.
+
+### 2. Backend Veritabanına Bağlanamıyor (Connection Refused)
+**Çözüm:** Docker konteynerlerinin tam olarak hazır olması bazen zaman alabilir. `docker compose logs -f portfolio-service` komutuyla hatayı takip edin. Eğer hata devam ederse:
 ```bash
-git checkout -b feature/kendi-ozelliginiz
+docker compose down -v  # Tüm verileri ve konteynerleri temizler
+docker compose up -d    # Yeniden başlatır
 ```
 
-### 2. Commit Mesajı Standartları (Conventional Commits)
-Lütfen commit mesajlarınızın başına yapılan işin türünü ekleyin (İngilizce tercih edilir):
-*   `feat:` Yeni bir özellik (örn: `feat: add goal calculation endpoint`)
-*   `fix:` Bir hata düzeltmesi (örn: `fix: resolve database connection timeout`)
-*   `refactor:` Kod iyileştirmesi
-*   `docs:` Readme vb. dokümantasyon güncellemeleri
+### 3. Frontend'de Veri Görünmüyor / Giriş Yapılamıyor
+**Çözüm:** Tarayıcıda `http://localhost:5173` adresine girdiğinizden emin olun. Eğer frontend'i Docker dışında (`npm run dev`) çalıştırıyorsanız, backend'in portuna (`localhost:8080`) erişebildiğinden emin olun (Vite proxy ayarları otomatik yapılmıştır).
 
-### 3. Pull Request (PR) Süreci
-1. Kendi branch'inizde işinizi bitirdiğinizde kodunuzu GitHub'a gönderin: `git push origin feature/kendi-ozelliginiz`
-2. GitHub üzerinden bir **Pull Request (PR)** açın.
-3. PR'da ne yaptığınızı kısaca açıklayın. Ekipteki en az bir kişinin onayını (Approve) aldıktan sonra kodunuzu `main` dalına birleştirin (Merge).
+---
 
-### 4. Kod Standartları ve Uyarılar
-*   Kodu göndermeden önce mutlaka localinizde projenin derlendiğinden (`./mvnw clean install`) emin olun.
-*   Yapay Zeka (Agentic) yapılarına yeni bir fonksiyon ekliyorsanız, `AIAgentToolsConfig.java` içerisine `@Description` anotasyonu ile bu fonksiyonun ne işe yaradığını AI'ın anlayacağı dilde yazmayı unutmayın.
+## 🌿 Git Kullanım Rehberi (Takım Çalışması)
 
-Takımımıza başarılar dilerim, Hackathon'da görüşmek üzere! 🏆
+Ekibimiz Fork-Pull Request modeliyle çalışmaktadır. İşte her gün yapmanız gerekenler:
+
+### 1. Kendi Fork'unuzu Güncel Tutun (Her Sabah)
+Projenin ana deposundaki (upstream) değişiklikleri kendi bilgisayarınıza çekmek için:
+```bash
+# Sadece ilk seferde: Ana depoyu 'upstream' olarak ekleyin
+git remote add upstream https://github.com/YusaEmirMetin/InWallet.git
+
+# Her sabah: Değişiklikleri çekin ve kendi main branch'inize birleştirin
+git checkout main
+git pull upstream main
+git push origin main
+```
+
+### 2. Yeni Bir Özellik Eklerken (Branch Açma)
+Asla doğrudan `main` üzerinde çalışmayın! Her özellik için yeni bir dal (branch) açın:
+```bash
+git checkout -b feature/eklenecek-ozellik-adi
+```
+
+### 3. Değişiklikleri Gönderme (Commit & Push)
+İşiniz bittiğinde anlamlı mesajlarla kaydedin:
+```bash
+git add .
+git commit -m "feat: hedefleri düzenleme özelliği eklendi"
+git push origin feature/eklenecek-ozellik-adi
+```
+
+### 4. Pull Request (PR) Açma
+GitHub arayüzüne gidin ve kendi branch'inizden ana deponun `main` dalına bir **Pull Request** oluşturun. Takım arkadaşlarınızdan onay aldıktan sonra merge edebilirsiniz.
+
+---
+
+## 📝 Önemli Notlar
+- **Veritabanı Resetleme:** Veritabanını sıfırlamak isterseniz Docker'da `inwallet-postgres` volume'ünü silmeniz yeterlidir.
+- **Frontend Geliştirme:** Eğer frontend kodunda hızlı değişiklik yapıp anında görmek istiyorsanız, Docker yerine yerel olarak `cd inwallet-frontend && npm run dev` komutunu kullanabilirsiniz. (Docker'daki frontend konteynerini durdurmayı unutmayın).
+
+🚀 **Hackathon'da başarılar dilerim! Birlikte harika bir iş çıkaracağız.**
