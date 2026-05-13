@@ -25,36 +25,60 @@ const DeleteIcon = () => (
 // SVG icons for asset type selector
 const TypeIcons: Record<string, React.ReactNode> = {
   Hisse: (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
-      <polyline points="16 7 22 7 22 13" />
+    /* Candlestick chart — clean financial symbol */
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="6" y1="4" x2="6" y2="20" />
+      <rect x="4" y="8" width="4" height="6" rx="0.5" fill="currentColor" opacity="0.25" stroke="currentColor" strokeWidth="1.5" />
+      <line x1="12" y1="2" x2="12" y2="18" />
+      <rect x="10" y="5" width="4" height="7" rx="0.5" fill="currentColor" opacity="0.25" stroke="currentColor" strokeWidth="1.5" />
+      <line x1="18" y1="6" x2="18" y2="22" />
+      <rect x="16" y="10" width="4" height="6" rx="0.5" fill="currentColor" opacity="0.25" stroke="currentColor" strokeWidth="1.5" />
     </svg>
   ),
   Kripto: (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10" />
-      <path d="M9.5 8H13a2.5 2.5 0 0 1 0 5H9.5V8z" />
-      <path d="M9.5 13H14a2.5 2.5 0 0 1 0 5H9.5v-5z" />
-      <line x1="9.5" y1="8" x2="9.5" y2="18" />
+    /* Blockchain link — modern crypto symbol */
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="1" y="8" width="8" height="8" rx="2" fill="currentColor" opacity="0.1" stroke="currentColor" />
+      <rect x="15" y="8" width="8" height="8" rx="2" fill="currentColor" opacity="0.1" stroke="currentColor" />
+      <line x1="9" y1="12" x2="15" y2="12" />
+      <circle cx="12" cy="12" r="1.5" fill="currentColor" opacity="0.5" />
+      <line x1="5" y1="8" x2="5" y2="4" />
+      <line x1="19" y1="16" x2="19" y2="20" />
     </svg>
   ),
   Altın: (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+    /* Gold bar / ingot — elegant commodity symbol */
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 18 L7 10 L17 10 L20 18 Z" fill="currentColor" opacity="0.15" stroke="currentColor" />
+      <line x1="7" y1="10" x2="4" y2="18" />
+      <line x1="17" y1="10" x2="20" y2="18" />
+      <line x1="7" y1="10" x2="17" y2="10" />
+      <line x1="4" y1="18" x2="20" y2="18" />
+      <line x1="9" y1="6" x2="15" y2="6" />
+      <line x1="9" y1="6" x2="7" y2="10" />
+      <line x1="15" y1="6" x2="17" y2="10" />
     </svg>
   ),
   Döviz: (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10" />
-      <line x1="2" y1="12" x2="22" y2="12" />
-      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+    /* Currency exchange arrows — clean FX symbol */
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="8" cy="9" r="5" fill="currentColor" opacity="0.08" stroke="currentColor" />
+      <circle cx="16" cy="15" r="5" fill="currentColor" opacity="0.08" stroke="currentColor" />
+      <text x="6.5" y="11.5" fontSize="6" fontWeight="700" fill="currentColor" stroke="none" fontFamily="Inter, system-ui, sans-serif">$</text>
+      <text x="14.2" y="17.5" fontSize="6" fontWeight="700" fill="currentColor" stroke="none" fontFamily="Inter, system-ui, sans-serif">₺</text>
+      <path d="M14 6 L18 4" />
+      <polyline points="17 2.5 18 4 16.5 5" />
+      <path d="M10 18 L6 20" />
+      <polyline points="7.5 21.5 6 20 7.5 19" />
     </svg>
   ),
   Diğer: (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="1" />
-      <circle cx="19" cy="12" r="1" />
-      <circle cx="5" cy="12" r="1" />
+    /* Grid / category icon — professional misc symbol */
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="7" height="7" rx="1.5" fill="currentColor" opacity="0.12" stroke="currentColor" />
+      <rect x="14" y="3" width="7" height="7" rx="1.5" fill="currentColor" opacity="0.12" stroke="currentColor" />
+      <rect x="3" y="14" width="7" height="7" rx="1.5" fill="currentColor" opacity="0.12" stroke="currentColor" />
+      <rect x="14" y="14" width="7" height="7" rx="1.5" fill="currentColor" opacity="0.12" stroke="currentColor" />
     </svg>
   ),
 };

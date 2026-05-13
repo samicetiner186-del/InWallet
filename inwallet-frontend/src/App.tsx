@@ -17,7 +17,7 @@ import Market from './pages/Market';
 import RecurringTransactions from './pages/RecurringTransactions';
 
 const AppContent: React.FC = () => {
-  const { isLoggedIn, username } = useAuth();
+  const { isLoggedIn, username, firstName, lastName } = useAuth();
   
   // Sayfa yenilendiğinde kalınan yerden devam etmesi için localStorage kullanımı
   const [currentView, setCurrentView] = useState(() => {
@@ -74,19 +74,32 @@ const AppContent: React.FC = () => {
               ☰
             </button>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              {/* Inwallet Logo */}
-              <div style={{ 
-                fontSize: '20px', 
-                fontWeight: '900', 
-                background: 'linear-gradient(135deg, #3b82f6 0%, #6366f1 50%, #8b5cf6 100%)',
-                backgroundClip: 'text',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                letterSpacing: '-1px',
-                fontFamily: 'system-ui, -apple-system, sans-serif'
-              }}>
-                InWallet
-              </div>
+              {/* Inwallet Logo — click to go home */}
+              <button
+                onClick={() => setCurrentView('dashboard')}
+                style={{
+                  fontSize: '20px',
+                  fontWeight: '900',
+                  letterSpacing: '-1px',
+                  fontFamily: 'system-ui, -apple-system, sans-serif',
+                  border: 'none',
+                  background: 'none',
+                  cursor: 'pointer',
+                  padding: 0,
+                  lineHeight: 1,
+                }}
+                title="Ana Sayfaya Dön"
+              >
+                <span style={{
+                  fontSize: '20px',
+                  fontWeight: '900',
+                  background: 'linear-gradient(135deg, #3b82f6 0%, #6366f1 50%, #8b5cf6 100%)',
+                  backgroundClip: 'text',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  letterSpacing: '-1px',
+                }}>InWallet</span>
+              </button>
               <div style={{ display: 'flex', alignItems: 'center' }}>
                 <button 
                   onClick={() => setIsPrivacyMode(!isPrivacyMode)}
@@ -122,9 +135,11 @@ const AppContent: React.FC = () => {
             </div>
           </div>
           <div className="user-profile">
-            <div className="text-muted">Hoş Geldiniz, {username || 'Kullanıcı'}</div>
+            <div className="text-muted">
+              Hoş Geldiniz, { (firstName || lastName) ? `${firstName || ''} ${lastName || ''}`.trim() : (username || 'Kullanıcı') }
+            </div>
             <div className="avatar" style={{ cursor: 'pointer' }} onClick={() => setCurrentView('settings')} title="Profili Düzenle">
-              {username ? username.slice(0, 2).toUpperCase() : 'IW'}
+              { firstName ? (firstName[0] + (lastName?.[0] || '')).toUpperCase() : (username ? username.slice(0, 2).toUpperCase() : 'IW') }
             </div>
           </div>
         </header>

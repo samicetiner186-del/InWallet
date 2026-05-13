@@ -30,4 +30,15 @@ public class CustomUserDetailsService implements UserDetailsService {
                 List.of(new SimpleGrantedAuthority(user.getRole()))
         );
     }
+
+    public UserDetails loadUserById(Long id) throws UsernameNotFoundException {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UsernameNotFoundException("Kullanıcı bulunamadı ID: " + id));
+
+        return new org.springframework.security.core.userdetails.User(
+                user.getUsername(),
+                user.getPassword(),
+                List.of(new SimpleGrantedAuthority(user.getRole()))
+        );
+    }
 }

@@ -93,8 +93,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, currentView, onNavig
           <button className="quick-action-btn" onClick={toggleTheme} style={{ width: '100%', marginBottom: '10px' }}>
             <span>{theme === 'dark' ? 'Işık Modu' : 'Koyu Mod'}</span>
           </button>
-          <button className="nav-item logout-btn" onClick={logout} style={{ border: 'none', background: 'rgba(239, 68, 68, 0.1)', width: '100%', cursor: 'pointer', borderRadius: '10px', padding: '12px' }}>
-            <span className="nav-label" style={{ color: '#ef4444', fontWeight: 700 }}>Çıkış Yap</span>
+          <button className="nav-item logout-btn" onClick={logout}>
+            <span className="nav-label">Çıkış Yap</span>
           </button>
         </div>
       </div>

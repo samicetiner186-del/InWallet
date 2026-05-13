@@ -9,7 +9,7 @@ const CURRENCIES = [
 ];
 
 const Settings: React.FC = () => {
-  const { userId, username } = useAuth();
+  const { userId, username, updateUserInfo } = useAuth();
   const [userData, setUserData] = useState<any>(null);
   const [theme, setTheme] = useState(() => localStorage.getItem('inwallet_theme') || 'light');
   const [aiNotifications, setAiNotifications] = useState(true);
@@ -18,6 +18,23 @@ const Settings: React.FC = () => {
   const [selectedCurrency, setSelectedCurrency] = useState('TRY');
   const [isCurrencyOpen, setIsCurrencyOpen] = useState(false);
 
+  // Password change state
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [oldPassword, setOldPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [pwSaving, setPwSaving] = useState(false);
+  const [pwMsg, setPwMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Profile edit state
+  const [isEditing, setIsEditing] = useState(false);
+  const [editFirstName, setEditFirstName] = useState('');
+  const [editLastName, setEditLastName] = useState('');
+  const [editUsername, setEditUsername] = useState('');
+  const [editEmail, setEditEmail] = useState('');
+  const [editSaving, setEditSaving] = useState(false);
+  const [editMsg, setEditMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('inwallet_theme', theme);
@@ -25,12 +42,92 @@ const Settings: React.FC = () => {
 
   useEffect(() => {
     if (!userId) return;
-    userApi.getMe(Number(userId)).then(setUserData).catch(() => {});
+    userApi.getMe(Number(userId)).then(d => {
+      setUserData(d);
+      setEditFirstName(d?.firstName || '');
+      setEditLastName(d?.lastName || '');
+      setEditUsername(d?.username || '');
+      setEditEmail(d?.email || '');
+    }).catch(() => {});
   }, [userId]);
 
-  const displayName = userData?.username || username || 'Kullanıcı';
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!userId) return;
+    if (newPassword !== confirmPassword) {
+      setPwMsg({ type: 'error', text: 'Yeni şifreler eşleşmiyor.' });
+      return;
+    }
+    if (newPassword.length < 6) {
+      setPwMsg({ type: 'error', text: 'Yeni şifre en az 6 karakter olmalıdır.' });
+      return;
+    }
+    setPwSaving(true);
+    setPwMsg(null);
+    try {
+      await userApi.changePassword(Number(userId), oldPassword, newPassword);
+      setPwMsg({ type: 'success', text: 'Şifre başarıyla güncellendi.' });
+      setOldPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setIsChangingPassword(false);
+      setTimeout(() => setPwMsg(null), 3000);
+    } catch (err: any) {
+      setPwMsg({ type: 'error', text: err.message || 'Şifre değiştirilemedi.' });
+    } finally {
+      setPwSaving(false);
+    }
+  };
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!userId) return;
+
+    // Şifre alanı doluysa önce doğrula
+    if (oldPassword || newPassword || confirmPassword) {
+      if (!oldPassword) { setEditMsg({ type: 'error', text: 'Mevcut şifrenizi girin.' }); return; }
+      if (newPassword !== confirmPassword) { setEditMsg({ type: 'error', text: 'Yeni şifreler eşleşmiyor.' }); return; }
+      if (newPassword.length < 6) { setEditMsg({ type: 'error', text: 'Yeni şifre en az 6 karakter olmalıdır.' }); return; }
+    }
+
+    setEditSaving(true);
+    setEditMsg(null);
+    try {
+      const updated = await userApi.updateMe(Number(userId), {
+        firstName: editFirstName,
+        lastName: editLastName,
+        username: editUsername,
+        email: editEmail,
+      });
+      setUserData(updated);
+
+      // Şifre değiştirme isteği varsa ayrıca gönder
+      if (oldPassword && newPassword) {
+        await userApi.changePassword(Number(userId), oldPassword, newPassword);
+        setOldPassword(''); setNewPassword(''); setConfirmPassword('');
+      }
+
+      setIsEditing(false);
+      setEditMsg({ type: 'success', text: 'Bilgiler başarıyla güncellendi.' });
+      updateUserInfo({
+        firstName: updated.firstName || null,
+        lastName: updated.lastName || null,
+        username: updated.username,
+      });
+      setTimeout(() => setEditMsg(null), 3000);
+    } catch (err: any) {
+      setEditMsg({ type: 'error', text: err.message || 'Güncelleme başarısız. Lütfen tekrar deneyin.' });
+    } finally {
+      setEditSaving(false);
+    }
+  };
+
+  const fullName = [userData?.firstName, userData?.lastName].filter(Boolean).join(' ');
+  const displayName = fullName || userData?.username || username || 'Kullanıcı';
   const displayEmail = userData?.email || '';
-  const initials = displayName.slice(0, 2).toUpperCase();
+  const initials = fullName
+    ? (userData.firstName[0] + (userData.lastName?.[0] || '')).toUpperCase()
+    : (userData?.username || username || 'IW').slice(0, 2).toUpperCase();
 
   const activeCurrency = CURRENCIES.find(c => c.value === selectedCurrency) || CURRENCIES[0];
 
@@ -86,26 +183,226 @@ const Settings: React.FC = () => {
               <h3 style={{ color: 'var(--accent-blue)', marginBottom: '16px', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 700 }}>
                 Profil Bilgileri
               </h3>
-              <div style={{ display: 'flex', gap: '20px', alignItems: 'center', background: 'rgba(128,128,128,0.05)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
-                <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--accent-blue), #6366f1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', fontWeight: 'bold', color: 'white', boxShadow: '0 8px 20px rgba(59, 130, 246, 0.3)', flexShrink: 0 }}>
-                  {initials}
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: '20px', fontWeight: 'bold', color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {displayName}
+              <div style={{ background: 'rgba(128,128,128,0.05)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
+                <div style={{ display: 'flex', gap: '20px', alignItems: 'center', marginBottom: isEditing ? '20px' : 0 }}>
+                  <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--accent-blue), #6366f1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', fontWeight: 'bold', color: 'white', boxShadow: '0 8px 20px rgba(59, 130, 246, 0.3)', flexShrink: 0 }}>
+                    {initials}
                   </div>
-                  {displayEmail && (
-                    <div style={{ color: 'var(--text-secondary)', marginTop: '2px', fontSize: '14px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {displayEmail}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: '20px', fontWeight: 'bold', color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {displayName}
                     </div>
-                  )}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: 'var(--accent-green)', fontSize: '12px', fontWeight: 700, marginTop: '6px' }}>
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                    Aktif Üye
+                    {/* Eğer ad soyad varsa kullanıcı adını da göster */}
+                    {(userData?.firstName || userData?.lastName) && (
+                      <div style={{ color: 'var(--text-secondary)', marginTop: '2px', fontSize: '13px', fontWeight: 500 }}>
+                        @{userData?.username}
+                      </div>
+                    )}
+                    {displayEmail && (
+                      <div style={{ color: 'var(--text-secondary)', marginTop: '2px', fontSize: '14px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {displayEmail}
+                      </div>
+                    )}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: 'var(--accent-green)', fontSize: '12px', fontWeight: 700, marginTop: '6px' }}>
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                      Aktif Üye
+                    </div>
                   </div>
+                  {/* Bilgileri Düzenle Button */}
+                  {!isEditing && (
+                    <button
+                      onClick={() => { setIsEditing(true); setEditMsg(null); }}
+                      style={{
+                        padding: '8px 18px',
+                        borderRadius: '10px',
+                        border: '1.5px solid var(--accent-blue)',
+                        background: 'transparent',
+                        color: 'var(--accent-blue)',
+                        fontWeight: 600,
+                        fontSize: '13px',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        flexShrink: 0,
+                      }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(59,130,246,0.1)'; }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
+                    >
+                      Bilgileri Düzenle
+                    </button>
+                  )}
                 </div>
+
+                {/* Feedback message */}
+                {editMsg && (
+                  <div style={{
+                    padding: '10px 14px', borderRadius: '10px', marginBottom: '16px',
+                    background: editMsg.type === 'success' ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)',
+                    border: `1px solid ${editMsg.type === 'success' ? 'rgba(16,185,129,0.25)' : 'rgba(239,68,68,0.25)'}`,
+                    color: editMsg.type === 'success' ? 'var(--accent-green)' : '#ef4444',
+                    fontSize: '13px', fontWeight: 600,
+                  }}>
+                    {editMsg.text}
+                  </div>
+                )}
+
+                {/* Edit Form */}
+                {isEditing && (
+                  <form onSubmit={handleSaveProfile} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    {/* Ad & Soyad — yan yana */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Ad</label>
+                        <input
+                          type="text"
+                          value={editFirstName}
+                          onChange={e => setEditFirstName(e.target.value)}
+                          placeholder="Adınız"
+                          style={{
+                            width: '100%', padding: '11px 14px', borderRadius: '10px',
+                            border: '1.5px solid var(--border-color)',
+                            background: 'var(--bg-primary)',
+                            color: 'var(--text-primary)',
+                            fontSize: '14px', outline: 'none', boxSizing: 'border-box',
+                            transition: 'border-color 0.2s ease',
+                          }}
+                          onFocus={e => { e.currentTarget.style.borderColor = 'var(--accent-blue)'; }}
+                          onBlur={e => { e.currentTarget.style.borderColor = 'var(--border-color)'; }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Soyad</label>
+                        <input
+                          type="text"
+                          value={editLastName}
+                          onChange={e => setEditLastName(e.target.value)}
+                          placeholder="Soyadınız"
+                          style={{
+                            width: '100%', padding: '11px 14px', borderRadius: '10px',
+                            border: '1.5px solid var(--border-color)',
+                            background: 'var(--bg-primary)',
+                            color: 'var(--text-primary)',
+                            fontSize: '14px', outline: 'none', boxSizing: 'border-box',
+                            transition: 'border-color 0.2s ease',
+                          }}
+                          onFocus={e => { e.currentTarget.style.borderColor = 'var(--accent-blue)'; }}
+                          onBlur={e => { e.currentTarget.style.borderColor = 'var(--border-color)'; }}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Kullanıcı Adı</label>
+                      <input
+                        type="text"
+                        value={editUsername}
+                        onChange={e => setEditUsername(e.target.value)}
+                        required
+                        style={{
+                          width: '100%', padding: '11px 14px', borderRadius: '10px',
+                          border: '1.5px solid var(--border-color)',
+                          background: 'var(--bg-primary)',
+                          color: 'var(--text-primary)',
+                          fontSize: '14px', outline: 'none', boxSizing: 'border-box',
+                          transition: 'border-color 0.2s ease',
+                        }}
+                        onFocus={e => { e.currentTarget.style.borderColor = 'var(--accent-blue)'; }}
+                        onBlur={e => { e.currentTarget.style.borderColor = 'var(--border-color)'; }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>E-posta</label>
+                      <input
+                        type="email"
+                        value={editEmail}
+                        onChange={e => setEditEmail(e.target.value)}
+                        style={{
+                          width: '100%', padding: '11px 14px', borderRadius: '10px',
+                          border: '1.5px solid var(--border-color)',
+                          background: 'var(--bg-primary)',
+                          color: 'var(--text-primary)',
+                          fontSize: '14px', outline: 'none', boxSizing: 'border-box',
+                          transition: 'border-color 0.2s ease',
+                        }}
+                        onFocus={e => { e.currentTarget.style.borderColor = 'var(--accent-blue)'; }}
+                        onBlur={e => { e.currentTarget.style.borderColor = 'var(--border-color)'; }}
+                      />
+                    </div>
+                    {/* Şifre Değiştir — opsiyonel */}
+                    <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '14px', marginTop: '2px' }}>
+                      <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '12px' }}>Şifre Değiştir (İsteğe Bağlı)</div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        {[
+                          { label: 'Mevcut Şifre', value: oldPassword, setter: setOldPassword, placeholder: 'Boş bırakırsanız şifre değişmez' },
+                          { label: 'Yeni Şifre', value: newPassword, setter: setNewPassword, placeholder: 'En az 6 karakter' },
+                          { label: 'Yeni Şifre (Tekrar)', value: confirmPassword, setter: setConfirmPassword, placeholder: 'Yeni şifrenizi tekrar girin' },
+                        ].map(({ label, value, setter, placeholder }) => (
+                          <div key={label}>
+                            <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{label}</label>
+                            <input
+                              type="password"
+                              value={value}
+                              onChange={e => setter(e.target.value)}
+                              placeholder={placeholder}
+                              style={{
+                                width: '100%', padding: '11px 14px', borderRadius: '10px',
+                                border: '1.5px solid var(--border-color)',
+                                background: 'var(--bg-primary)', color: 'var(--text-primary)',
+                                fontSize: '14px', outline: 'none', boxSizing: 'border-box',
+                                transition: 'border-color 0.2s ease',
+                              }}
+                              onFocus={e => { e.currentTarget.style.borderColor = 'var(--accent-blue)'; }}
+                              onBlur={e => { e.currentTarget.style.borderColor = 'var(--border-color)'; }}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                      <button
+                        type="submit"
+                        disabled={editSaving}
+                        style={{
+                          flex: 1, padding: '11px',
+                          borderRadius: '10px',
+                          border: 'none',
+                          background: editSaving ? 'rgba(59,130,246,0.4)' : 'linear-gradient(135deg, #2563eb, #3b82f6)',
+                          color: 'white',
+                          fontWeight: 700, fontSize: '14px',
+                          cursor: editSaving ? 'not-allowed' : 'pointer',
+                          transition: 'all 0.2s ease',
+                        }}
+                      >
+                        {editSaving ? 'Kaydediliyor...' : 'Kaydet'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsEditing(false);
+                          setEditMsg(null);
+                          setEditFirstName(userData?.firstName || '');
+                          setEditLastName(userData?.lastName || '');
+                          setEditUsername(userData?.username || '');
+                          setEditEmail(userData?.email || '');
+                        }}
+                        style={{
+                          padding: '11px 18px',
+                          borderRadius: '10px',
+                          border: '1.5px solid var(--border-color)',
+                          background: 'transparent',
+                          color: 'var(--text-secondary)',
+                          fontWeight: 600, fontSize: '14px',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease',
+                        }}
+                        onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(128,128,128,0.08)'; }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
+                      >
+                        İptal
+                      </button>
+                    </div>
+                  </form>
+                )}
               </div>
             </section>
 

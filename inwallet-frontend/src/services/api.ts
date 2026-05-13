@@ -107,8 +107,24 @@ export const userApi = {
       headers: authHeaders(),
       body: JSON.stringify(userData),
     });
-    if (!res.ok) throw new Error('Kullanıcı bilgileri güncellenemedi.');
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(errorText || 'Kullanıcı bilgileri güncellenemedi.');
+    }
     return res.json();
+  },
+
+  changePassword: async (userId: number, oldPassword: string, newPassword: string) => {
+    const res = await request(`${BASE_URL}/api/users/${userId}/change-password`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ oldPassword, newPassword }),
+    });
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(errorText || 'Şifre değiştirilemedi.');
+    }
+    return res.text();
   },
 };
 
