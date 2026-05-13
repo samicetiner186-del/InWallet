@@ -241,7 +241,7 @@ export const aiApi = {
       body: formData,
     });
     if (!res.ok) throw new Error('AI sesli yanıt veremedi.');
-    return res.text();
+    return res.blob();
   },
 };
 
