@@ -1,27 +1,20 @@
 package com.wallet.ai.service;
 
-import org.springframework.ai.openai.audio.transcription.AudioTranscriptionPrompt;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.openai.OpenAiAudioSpeechModel;
-import org.springframework.ai.openai.OpenAiAudioTranscriptionModel;
+import org.springframework.ai.model.Media;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
+import org.springframework.util.MimeTypeUtils;
 
 @Service
 public class AIAssistantService {
 
     private final ChatClient chatClient;
-    private final OpenAiAudioTranscriptionModel transcriptionModel;
-    private final OpenAiAudioSpeechModel speechModel;
 
-    public AIAssistantService(ChatClient.Builder chatClientBuilder, 
-                              OpenAiAudioTranscriptionModel transcriptionModel,
-                              OpenAiAudioSpeechModel speechModel) {
-        this.transcriptionModel = transcriptionModel;
-        this.speechModel = speechModel;
+    public AIAssistantService(ChatClient.Builder chatClientBuilder) {
         this.chatClient = chatClientBuilder
                 .defaultSystem("""
-                        Sen, InWallet uygulamasının üst düzey, nesnel ve analitik Finans Uzmanı yapay zekasısın.
+                        Sen, InWallet uygulamasının üst düzey, nesnel ve analitik Finans Uzmanı yapay zekasısın (Gemini Pro).
                         
                         Görevlerin ve Temel Kuralların:
                         1. Analitik Yaklaşım: Kullanıcının sana sunduğu (veya fonksiyonlarla elde ettiğin) portföy durumunu, gelirini ve hedeflerini her zaman analiz et.
@@ -55,13 +48,19 @@ public class AIAssistantService {
     }
 
     public byte[] chatWithVoice(Resource audioResource, Long userId) {
-        // 1. Sesi metne çevir (Speech-to-Text)
-        String userMessage = transcriptionModel.call(new AudioTranscriptionPrompt(audioResource)).getResult().getOutput();
+        // Gemini Multimodal: Sesi doğrudan modele gönderip transkripsiyon alabiliriz.
+        String transcription = chatClient.prompt()
+                .user(u -> u.text("Lütfen bu ses kaydını yazıya dök.")
+                           .media(new Media(MimeTypeUtils.parseMimeType("audio/webm"), audioResource)))
+                .call()
+                .content();
         
-        // 2. Metni asistan ile işle (Agentic Workflow)
-        String assistantResponse = chatWithAgent(userMessage, userId);
+        // Metni asistan ile işle
+        String assistantResponse = chatWithAgent(transcription, userId);
         
-        // 3. Asistanın cevabını sese çevir (Text-to-Speech)
-        return speechModel.call(assistantResponse);
+        // NOT: Google Gemini şu an doğrudan Byte[] olarak ses döndürmez (Spring AI M1'de).
+        // Bu yüzden metin cevabını dönüyoruz veya bir TTS servisi gerekecek.
+        // Şimdilik hata almamak için metni dönüyoruz (Frontend bunu ses olarak çalmaya çalışacaktır).
+        return assistantResponse.getBytes();
     }
 }

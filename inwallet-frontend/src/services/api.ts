@@ -224,11 +224,18 @@ export const goalApi = {
 // ─── AI Assistant Endpoint ──────────────────────────────
 export const aiApi = {
   chat: async (userId: number, message: string) => {
-    const res = await request(`${AI_URL}/api/ai/chat?userId=${userId}&message=${encodeURIComponent(message)}`, {
-      method: 'POST',
-    });
-    if (!res.ok) throw new Error('AI yanıt veremedi.');
-    return res.text();
+    try {
+      const res = await request(`${AI_URL}/api/ai/chat?userId=${userId}&message=${encodeURIComponent(message)}`, {
+        method: 'POST',
+      });
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || `AI Servis Hatası (${res.status})`);
+      }
+      return res.text();
+    } catch (err: any) {
+      throw err;
+    }
   },
 
   chatWithAudio: async (userId: number, audioBlob: Blob) => {

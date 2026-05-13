@@ -38,8 +38,13 @@ const AIChatWidget: React.FC = () => {
     try {
       const data = await aiApi.chat(userId ?? 1, userText);
       setMessages(prev => [...prev, { sender: 'ai', text: data }]);
-    } catch {
-      setMessages(prev => [...prev, { sender: 'error', text: 'Bağlantı hatası: AI Asistan servisine ulaşılamıyor. Lütfen backend\'in çalıştığından emin olun.' }]);
+    } catch (err: any) {
+      setMessages(prev => [...prev, { 
+        sender: 'error', 
+        text: err.message.includes('Failed to fetch') 
+          ? 'Bağlantı hatası: AI Asistan servisine ulaşılamıyor. Lütfen backend\'in çalıştığından emin olun.' 
+          : `Hata: ${err.message}` 
+      }]);
     } finally {
       setIsLoading(false);
     }

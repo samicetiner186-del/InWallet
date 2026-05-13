@@ -5,8 +5,13 @@ spring:
   application:
     name: ai-assistant-service
   ai:
-    openai:
-      api-key: ${OPENAI_API_KEY:sk-default-placeholder-key-for-now}
-      chat:
-        options:
-          model: gpt-3.5-turbo
+    vertex:
+      ai:
+        gemini:
+          project-id: ${GOOGLE_CLOUD_PROJECT_ID:senin-proje-id}
+          location: us-central1
+          api-key: ${GEMINI_API_KEY:senin-api-key}
+          chat:
+            options:
+              model: gemini-1.5-pro-002
+              temperature: 0.7

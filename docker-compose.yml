@@ -99,6 +99,8 @@ services:
       - "8081:8081"
     environment:
       PORTFOLIO_SERVICE_URL: http://portfolio-service:8080
+      GOOGLE_CLOUD_PROJECT_ID: ${GOOGLE_CLOUD_PROJECT_ID:-senin-proje-id}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-senin-api-key}
     depends_on:
       - portfolio-service
     networks:
