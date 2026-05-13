@@ -11,7 +11,10 @@ const AIChatWidget: React.FC = () => {
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<BlobPart[]>([]);
 
   const toggleChat = () => setIsOpen(!isOpen);
 
@@ -28,9 +31,7 @@ const AIChatWidget: React.FC = () => {
     if (!input.trim()) return;
 
     const userText = input.trim();
-    const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    
-    setMessages(prev => [...prev, { id: Date.now().toString(), sender: 'user', text: userText, time: currentTime }]);
+    setMessages(prev => [...prev, { sender: 'user', text: userText }]);
     setInput('');
     setIsLoading(true);
 
@@ -44,6 +45,57 @@ const AIChatWidget: React.FC = () => {
     }
   };
 
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        await handleAudioSend(audioBlob);
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+    } catch (err) {
+      console.error("Mikrofon erişim hatası:", err);
+      alert("Mikrofon erişimine izin vermeniz gerekiyor.");
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+    }
+  };
+
+  const handleAudioSend = async (audioBlob: Blob) => {
+    setIsLoading(true);
+    setMessages(prev => [...prev, { sender: 'user', text: '🎤 (Sesli mesaj gönderildi)' }]);
+    try {
+      const responseBlob = await aiApi.chatWithAudio(userId ?? 1, audioBlob);
+      
+      const audioUrl = URL.createObjectURL(responseBlob);
+      const audio = new Audio(audioUrl);
+      audio.play().catch(e => console.error("Audio play failed:", e));
+
+      setMessages(prev => [...prev, { sender: 'ai', text: '🔊 (Sesli yanıt oynatılıyor)' }]);
+    } catch (err) {
+      setMessages(prev => [...prev, { sender: 'error', text: 'Yapay zeka asistanı sesinizi işlerken bir hata oluştu.' }]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="ai-chat-wrapper">
@@ -111,21 +163,34 @@ const AIChatWidget: React.FC = () => {
             </button>
           </div>
 
-          <form className="ai-chat-input" onSubmit={sendMessage}>
-            <input 
-              type="text" 
-              placeholder="Asistana bir soru sorun..." 
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
+          <div className="ai-chat-input-wrapper">
+            <form className="ai-chat-input" onSubmit={sendMessage}>
+              <input 
+                type="text" 
+                placeholder="Asistana bir soru sorun..." 
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                disabled={isLoading || isRecording}
+              />
+              <button type="submit" disabled={!input.trim() || isLoading || isRecording} className="send-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="22" y1="2" x2="11" y2="13"></line>
+                  <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+              </button>
+            </form>
+            <button 
+              className={`mic-button ${isRecording ? 'recording' : ''}`}
+              onMouseDown={startRecording}
+              onMouseUp={stopRecording}
+              onTouchStart={startRecording}
+              onTouchEnd={stopRecording}
               disabled={isLoading}
-            />
-            <button type="submit" disabled={!input.trim() || isLoading} className="send-btn">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="22" y1="2" x2="11" y2="13"></line>
-                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-              </svg>
+              title="Konuşmak için basılı tutun"
+            >
+              {isRecording ? '🎙️' : '🎤'}
             </button>
-          </form>
+          </div>
         </div>
       )}
       
