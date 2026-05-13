@@ -39,10 +39,14 @@ public class JwtUtil {
 
     public Long extractUserId(String token) {
         Object userId = parseClaims(token).get("userId");
-        if (userId instanceof Integer) {
-            return ((Integer) userId).longValue();
+        if (userId == null) return null;
+        if (userId instanceof Number) {
+            return ((Number) userId).longValue();
         }
-        return (Long) userId;
+        if (userId instanceof String) {
+            return Long.parseLong((String) userId);
+        }
+        return null;
     }
 
     public boolean isTokenValid(String token, String username) {

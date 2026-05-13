@@ -55,6 +55,18 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 } else {
                     System.out.println("DEBUG: Token validation FAILED for userId: " + userId);
                 }
+            } else if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                // Fallback for old tokens
+                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                if (jwtUtil.isTokenValid(token, userDetails.getUsername())) {
+                    System.out.println("DEBUG: Token validated for user (fallback): " + userDetails.getUsername());
+                    UsernamePasswordAuthenticationToken authToken =
+                            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                } else {
+                    System.out.println("DEBUG: Token validation FAILED for user (fallback): " + username);
+                }
             }
         } catch (io.jsonwebtoken.ExpiredJwtException e) {
             System.out.println("DEBUG: JWT expired: " + e.getMessage());

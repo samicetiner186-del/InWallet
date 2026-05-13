@@ -1,5 +1,7 @@
 package com.wallet.portfolio.controller;
 
+import com.wallet.portfolio.dto.ChangePasswordRequest;
+import com.wallet.portfolio.dto.UpdateProfileRequest;
 import com.wallet.portfolio.entity.User;
 import com.wallet.portfolio.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +34,22 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User user) {
-        return ResponseEntity.ok(userService.updateUser(id, user));
+    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody UpdateProfileRequest req) {
+        try {
+            return ResponseEntity.ok(userService.updateUserProfile(id, req));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/{id}/change-password")
+    public ResponseEntity<?> changePassword(@PathVariable Long id, @RequestBody ChangePasswordRequest req) {
+        try {
+            userService.changePassword(id, req);
+            return ResponseEntity.ok("Şifre başarıyla güncellendi");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }
+

@@ -11,6 +11,7 @@ interface AuthContextType {
   register: (username: string, email: string, password: string) => Promise<void>;
   logout: () => void;
   refreshUser: () => Promise<void>;
+  updateUserInfo: (data: { firstName?: string | null; lastName?: string | null; username?: string | null }) => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -54,12 +55,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const refreshUser = async () => {
-    if (!userId) return;
+    // userId state gecikmeli olabilir, token'dan direkt oku
+    const token = getToken();
+    let uid = userId;
+    if (!uid && token) {
+      try {
+        const parts = token.split('.');
+        if (parts.length === 3) {
+          const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+          const payload = JSON.parse(decodeURIComponent(escape(window.atob(base64))));
+          uid = Number(payload.userId);
+        }
+      } catch (_) {}
+    }
+    if (!uid) return;
     const { userApi } = await import('../services/api');
-    const data = await userApi.getMe(userId);
+    const data = await userApi.getMe(uid);
     setUsername(data.username);
-    setFirstName(data.firstName);
-    setLastName(data.lastName);
+    setFirstName(data.firstName || null);
+    setLastName(data.lastName || null);
+  };
+
+  const updateUserInfo = (data: { firstName?: string | null; lastName?: string | null; username?: string | null }) => {
+    if (data.firstName !== undefined) setFirstName(data.firstName || null);
+    if (data.lastName !== undefined) setLastName(data.lastName || null);
+    if (data.username) setUsername(data.username);
   };
 
   const login = async (user: string, password: string) => {
@@ -72,9 +92,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
         const payload = JSON.parse(decodeURIComponent(escape(window.atob(base64))));
         
+        const uid = Number(payload.userId);
         setUsername(payload.sub);
-        setUserId(Number(payload.userId));
+        setUserId(uid);
         setIsLoggedIn(true);
+
+        // Giriş sonrası ad/soyad bilgilerini çek
+        const { userApi } = await import('../services/api');
+        try {
+          const data = await userApi.getMe(uid);
+          setFirstName(data.firstName || null);
+          setLastName(data.lastName || null);
+        } catch (_) {}
       }
     }
   };
@@ -93,7 +122,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, userId, username, firstName, lastName, login, register, logout, refreshUser }}>
+    <AuthContext.Provider value={{ isLoggedIn, userId, username, firstName, lastName, login, register, logout, refreshUser, updateUserInfo }}>
       {children}
     </AuthContext.Provider>
   );
