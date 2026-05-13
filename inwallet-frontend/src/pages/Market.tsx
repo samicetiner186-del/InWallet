@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { marketApi, assetApi } from '../services/api';
+import { marketApi, assetApi, transactionApi } from '../services/api';
 
 // Görsel zenginleştirme metadata'sı — fiyatlar tamamen API'den gelir
 const ASSET_META: Record<string, { label: string; type: string; category: string }> = {
@@ -46,6 +46,7 @@ const Market: React.FC = () => {
     setInvesting(true);
     setErrorMsg('');
     try {
+      // 1. Create the Asset
       await assetApi.createAsset({
         symbol: selectedAsset.symbol,
         name: selectedAsset.meta.label,
@@ -54,13 +55,24 @@ const Market: React.FC = () => {
         averageBuyPrice: selectedAsset.price,
         user: { id: Number(userId) },
       });
-      setSuccessMsg(`${selectedAsset.symbol} portföyünüze eklendi!`);
+
+      // 2. Create a corresponding BUY Transaction to deduct from cash
+      await transactionApi.createTransaction({
+        userId: Number(userId),
+        amount: Number(quantity) * selectedAsset.price,
+        type: 'BUY',
+        category: 'Yatırım',
+        description: `${selectedAsset.symbol} alımı (${quantity} adet)`,
+        date: new Date().toISOString(),
+      });
+
+      setSuccessMsg(`${selectedAsset.symbol} portföyünüze eklendi ve bakiyeniz güncellendi!`);
       setQuantity('');
       setTimeout(() => {
         setSuccessMsg('');
         setSelectedAsset(null);
       }, 2500);
-    } catch {
+    } catch (err) {
       setErrorMsg('İşlem gerçekleştirilemedi. Lütfen tekrar deneyin.');
     } finally {
       setInvesting(false);

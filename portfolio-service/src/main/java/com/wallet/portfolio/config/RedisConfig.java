@@ -1,5 +1,8 @@
 package com.wallet.portfolio.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,11 +20,18 @@ public class RedisConfig {
 
     @Bean
     public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory) {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        // Tip bilgilerini de saklayalım ki deserialization sırasında sorun olmasın
+        mapper.activateDefaultTyping(LaissezFaireSubTypeValidator.instance, ObjectMapper.DefaultTyping.NON_FINAL);
+
+        GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer(mapper);
+
         RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
-                // Serileştirme formatı: JSON (okunabilir ve tip güvenli)
+                // Serileştirme formatı: JSON (Java 8 tarih desteği ile)
                 .serializeValuesWith(
                         RedisSerializationContext.SerializationPair
-                                .fromSerializer(new GenericJackson2JsonRedisSerializer())
+                                .fromSerializer(serializer)
                 )
                 // Varsayılan TTL: 10 dakika
                 .entryTtl(Duration.ofMinutes(10))
