@@ -89,13 +89,8 @@ const AIChatWidget: React.FC = () => {
     setIsLoading(true);
     setMessages(prev => [...prev, { sender: 'user', text: '🎤 (Sesli mesaj gönderildi)' }]);
     try {
-      const responseBlob = await aiApi.chatWithAudio(userId ?? 1, audioBlob);
-      
-      const audioUrl = URL.createObjectURL(responseBlob);
-      const audio = new Audio(audioUrl);
-      audio.play().catch(e => console.error("Audio play failed:", e));
-
-      setMessages(prev => [...prev, { sender: 'ai', text: '🔊 (Sesli yanıt oynatılıyor)' }]);
+      const responseText = await aiApi.chatWithAudio(userId ?? 1, audioBlob);
+      setMessages(prev => [...prev, { sender: 'ai', text: responseText }]);
     } catch (err) {
       setMessages(prev => [...prev, { sender: 'error', text: 'Yapay zeka asistanı sesinizi işlerken bir hata oluştu.' }]);
     } finally {

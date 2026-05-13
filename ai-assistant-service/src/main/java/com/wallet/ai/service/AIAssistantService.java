@@ -1,6 +1,5 @@
 package com.wallet.ai.service;
 
-import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -49,7 +48,7 @@ public class AIAssistantService {
                 """.formatted(portfolio, goals, transactions);
 
             // Direct Call to Google Gemini API (REST)
-            String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=" + geminiApiKey;
+            String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + geminiApiKey;
 
             Map<String, Object> requestBody = Map.of(
                 "contents", List.of(
@@ -100,8 +99,7 @@ public class AIAssistantService {
         }
     }
 
-    public byte[] chatWithVoice(Resource audioFile, Long userId) {
-        String response = chatWithAgent("Sesli mesaj gönderildi.", userId);
-        return response.getBytes(); 
+    public String chatWithVoice(Resource audioResource, Long userId) {
+        return chatWithAgent("Sesli mesaj gönderildi.", userId);
     }
 }

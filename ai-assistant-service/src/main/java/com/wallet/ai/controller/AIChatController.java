@@ -26,18 +26,18 @@ public class AIChatController {
     }
 
     @PostMapping(value = "/chat/audio", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<byte[]> chatWithVoice(@RequestParam("audio") MultipartFile audioFile, 
+    public ResponseEntity<String> chatWithVoice(@RequestParam("audio") MultipartFile audioFile, 
                                                 @RequestParam("userId") Long userId) {
         try {
             Resource audioResource = audioFile.getResource();
-            byte[] responseAudio = aiAssistantService.chatWithVoice(audioResource, userId);
+            String responseText = aiAssistantService.chatWithVoice(audioResource, userId);
             
             HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.valueOf("audio/mpeg"));
+            headers.setContentType(MediaType.valueOf("text/plain;charset=UTF-8"));
             
             return ResponseEntity.ok()
                     .headers(headers)
-                    .body(responseAudio);
+                    .body(responseText);
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
         }

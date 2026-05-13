@@ -19,6 +19,7 @@ const Settings: React.FC = () => {
 
 
 
+
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('inwallet_theme', theme);
@@ -28,6 +29,8 @@ const Settings: React.FC = () => {
     if (!userId) return;
     userApi.getMe(Number(userId)).catch(() => {});
   }, [userId]);
+
+
 
 
 
