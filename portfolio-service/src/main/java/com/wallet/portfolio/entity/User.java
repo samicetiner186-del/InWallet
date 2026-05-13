@@ -47,14 +47,17 @@ public class User {
     
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private java.util.List<Asset> assets = new java.util.ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private java.util.List<Goal> goals = new java.util.ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private java.util.List<Transaction> transactions = new java.util.ArrayList<>();
     
     @PrePersist

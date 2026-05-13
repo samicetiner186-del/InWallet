@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import AssetChartModal from '../components/AssetChartModal';
 import { useAuth } from '../context/AuthContext';
-import { assetApi, marketApi } from '../services/api';
+import { assetApi, marketApi, transactionApi } from '../services/api';
 
 const COLORS = {
   Hisse: '#3b82f6',
@@ -130,6 +130,7 @@ const Portfolio: React.FC = () => {
     e.preventDefault();
     if (!userId) return;
     try {
+      // 1. Create the Asset
       await assetApi.createAsset({
         name: newName,
         symbol: newSymbol.toUpperCase(),
@@ -138,6 +139,17 @@ const Portfolio: React.FC = () => {
         averageBuyPrice: Number(newBuyPrice),
         user: { id: Number(userId) }
       });
+
+      // 2. Create a corresponding BUY Transaction
+      await transactionApi.createTransaction({
+        userId: Number(userId),
+        amount: Number(newQuantity) * Number(newBuyPrice),
+        type: 'BUY',
+        category: 'Yatırım',
+        description: `${newSymbol.toUpperCase()} alımı (Portföyden eklendi)`,
+        date: new Date().toISOString(),
+      });
+
       setNewName('');
       setNewSymbol('');
       setNewQuantity('');

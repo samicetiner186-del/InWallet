@@ -1,6 +1,6 @@
 // API Base URL - tüm backend istekleri buradan geçer
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
-const AI_URL = import.meta.env.VITE_AI_BASE_URL || '/ai';
+const AI_URL = import.meta.env.VITE_AI_BASE_URL || '';
 
 // ─── Auth Token Yönetimi ────────────────────────────────
 export const getToken = (): string | null => localStorage.getItem('inwallet_token');
@@ -100,7 +100,7 @@ export const userApi = {
     if (!res.ok) throw new Error('Kullanıcı bilgileri alınamadı.');
     return res.json();
   },
-  
+
   updateMe: async (userId: number, userData: object) => {
     const res = await request(`${BASE_URL}/api/users/${userId}`, {
       method: 'PUT',
@@ -240,9 +240,24 @@ export const goalApi = {
 // ─── AI Assistant Endpoint ──────────────────────────────
 export const aiApi = {
   chat: async (userId: number, message: string) => {
-    const res = await request(`${AI_URL}/api/ai/chat?userId=${userId}&message=${encodeURIComponent(message)}`);
+    const res = await request(`${AI_URL}/api/ai/chat?userId=${userId}&message=${encodeURIComponent(message)}`, {
+      method: 'POST',
+    });
     if (!res.ok) throw new Error('AI yanıt veremedi.');
     return res.text();
+  },
+
+  chatWithAudio: async (userId: number, audioBlob: Blob) => {
+    const formData = new FormData();
+    formData.append('audio', audioBlob, 'voice.webm');
+    formData.append('userId', userId.toString());
+
+    const res = await fetch(`${AI_URL}/api/ai/chat/audio`, {
+      method: 'POST',
+      body: formData,
+    });
+    if (!res.ok) throw new Error('AI sesli yanıt veremedi.');
+    return res.blob();
   },
 };
 
