@@ -253,3 +253,40 @@ export const marketApi = {
     return res.json();
   },
 };
+
+// ─── Recurring Transactions Endpoint ──────────────────────
+export const recurringTransactionApi = {
+  getRecurring: async (userId: number) => {
+    const res = await request(`${BASE_URL}/api/recurring-transactions/user/${userId}`, { headers: authHeaders(false) });
+    if (!res.ok) throw new Error('Tekrarlayan işlemler alınamadı.');
+    return res.json();
+  },
+
+  createRecurring: async (recurring: object) => {
+    const res = await request(`${BASE_URL}/api/recurring-transactions`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify(recurring),
+    });
+    if (!res.ok) throw new Error('Tekrarlayan işlem oluşturulamadı.');
+    return res.json();
+  },
+
+  deleteRecurring: async (id: number) => {
+    const res = await request(`${BASE_URL}/api/recurring-transactions/${id}`, {
+      method: 'DELETE',
+      headers: authHeaders(),
+    });
+    if (!res.ok) throw new Error('Tekrarlayan işlem silinemedi.');
+    return true;
+  },
+
+  manualProcess: async () => {
+    const res = await request(`${BASE_URL}/api/recurring-transactions/process`, {
+      method: 'POST',
+      headers: authHeaders(),
+    });
+    if (!res.ok) throw new Error('İşlem tetiklenemedi.');
+    return res.text();
+  }
+};

@@ -121,7 +121,7 @@ const Goals: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [goalToEdit, setGoalToEdit] = useState<any>(null);
-  
+
   const [assets, setAssets] = useState<any[]>([]);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [marketPrices, setMarketPrices] = useState<any>({});
@@ -158,7 +158,7 @@ const Goals: React.FC = () => {
     const income = transactions
       .filter(t => ['INCOME', 'SELL'].includes((t.type || "").toUpperCase()))
       .reduce((s, t) => s + Number(t.amount || 0), 0);
-    
+
     const realExpense = transactions
       .filter(t => (t.type || "").toUpperCase() === 'EXPENSE')
       .reduce((s, t) => s + Number(t.amount || 0), 0);
@@ -166,7 +166,7 @@ const Goals: React.FC = () => {
     const investments = transactions
       .filter(t => ['BUY', 'INVESTMENT'].includes((t.type || "").toUpperCase()))
       .reduce((s, t) => s + Number(t.amount || 0), 0);
-    
+
     const cashBalance = income - realExpense - investments;
 
     const assetValue = assets.reduce((sum, asset) => {
@@ -180,10 +180,10 @@ const Goals: React.FC = () => {
   const stats = useMemo(() => {
     if (goalsList.length === 0) return { total: 0, completed: 0, avgProgress: 0 };
     const total = goalsList.length;
-    
+
     const sortedGoals = [...goalsList].sort((a, b) => (Number(a.priority) || 99) - (Number(b.priority) || 99));
     let currentPool = totalNetWorth;
-    
+
     const progressList = sortedGoals.map(g => {
       const target = Number(g.currentTargetPrice || g.targetAmount || 1);
       const progress = Math.min(100, (currentPool / target) * 100);
@@ -193,7 +193,7 @@ const Goals: React.FC = () => {
 
     const completed = progressList.filter(p => p >= 100).length;
     const avgProgress = progressList.reduce((sum, p) => sum + p, 0) / total;
-    
+
     return { total, completed, avgProgress };
   }, [goalsList, totalNetWorth]);
 
@@ -279,10 +279,10 @@ const Goals: React.FC = () => {
               const allocated = Math.min(currentPool, target);
               const progress = Math.min(100, (allocated / target) * 100);
               const remainingNeeded = Math.max(0, target - allocated);
-              
+
               const availableInThisStep = currentPool;
               currentPool = Math.max(0, currentPool - target);
-              
+
               const today = new Date();
               const targetDate = goal.targetDate ? new Date(goal.targetDate) : null;
               const monthsLeft = targetDate ? (targetDate.getFullYear() - today.getFullYear()) * 12 + (targetDate.getMonth() - today.getMonth()) : 0;
@@ -310,7 +310,7 @@ const Goals: React.FC = () => {
 
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', position: 'relative', zIndex: 1 }}>
                     <span style={{ fontSize: '11px', fontWeight: 700, padding: '3px 10px', borderRadius: '20px', background: `${typeColor}15`, color: typeColor, border: `1px solid ${typeColor}30`, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg>
+                      <svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10" /></svg>
                       Öncelik {goal.priority}
                     </span>
                     <span style={{ fontSize: '11px', fontWeight: 600, padding: '3px 10px', borderRadius: '20px', background: 'rgba(128,128,128,0.1)', color: 'var(--text-secondary)', border: '1px solid var(--border-color)' }}>

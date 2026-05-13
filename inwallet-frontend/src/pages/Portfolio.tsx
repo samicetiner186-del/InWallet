@@ -233,9 +233,10 @@ const Portfolio: React.FC = () => {
                   </div>
                   <div>
                     <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>{asset.name} <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 400 }}>{asset.symbol}</span></h4>
-                    <div style={{ display: 'flex', gap: '12px', marginTop: '5px' }}>
-                      <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{asset.quantity} Adet</span>
-                      <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Ort. Alış: ₺{Number(asset.averageBuyPrice).toLocaleString('tr-TR')}</span>
+                    <div style={{ display: 'flex', gap: '12px', marginTop: '5px', flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: '12px', color: 'var(--text-secondary)', background: 'rgba(128,128,128,0.08)', padding: '2px 8px', borderRadius: '4px' }}>{asset.quantity} Adet</span>
+                      <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Maliyet: ₺{Number(asset.averageBuyPrice).toLocaleString('tr-TR')}</span>
+                      <span style={{ fontSize: '12px', color: 'var(--accent-blue)', fontWeight: 600 }}>Güncel: ₺{currentPrice.toLocaleString('tr-TR')}</span>
                     </div>
                   </div>
                 </div>

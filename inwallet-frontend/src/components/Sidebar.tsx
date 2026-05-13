@@ -14,10 +14,10 @@ const menuItems = [
   { id: 'dashboard', label: 'Ana Sayfa', desc: 'Genel özet panosu' },
   { id: 'portfolio', label: 'Portföyüm', desc: 'Varlıklarınızı inceleyin' },
   { id: 'market', label: 'Piyasalar', desc: 'Canlı veriler ve yatırım' },
+  { id: 'recurring', label: 'Otomatik İşlemler', desc: 'Tekrarlayan gelir/gider' },
   { id: 'dca', label: 'DCA Planlayıcı', desc: 'Düzenli yatırım planı' },
   { id: 'transactions', label: 'İşlem Geçmişi', desc: 'Gelir ve gider akışı' },
   { id: 'goals', label: 'Hedeflerim', desc: 'Hayallerinizi planlayın' },
-  { id: 'favorites', label: 'Favoriler', desc: 'Sık kullanılan işlemler' },
   { id: 'settings', label: 'Ayarlar', desc: 'Uygulama tercihleri' },
 ];
 
