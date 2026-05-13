@@ -144,21 +144,21 @@ const Dashboard: React.FC = () => {
       <div className="col-span-12" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', marginBottom: '24px' }}>
         <div className="glass-card" style={{ borderLeft: '4px solid var(--accent-blue)', background: 'rgba(59, 130, 246, 0.05)' }}>
           <div style={{ color: 'var(--text-secondary)', fontSize: '12px', fontWeight: 600 }}>TOPLAM NET VARLIK</div>
-          <div style={{ fontSize: '30px', fontWeight: 900, marginTop: '8px' }}>₺{stats.totalNetWorth.toLocaleString()}</div>
+          <div className="sensitive-data" style={{ fontSize: '30px', fontWeight: 900, marginTop: '8px' }}>₺{stats.totalNetWorth.toLocaleString()}</div>
         </div>
         <div className="glass-card" style={{ borderLeft: '4px solid var(--accent-green)', background: 'rgba(16, 185, 129, 0.05)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <span style={{ color: 'var(--text-secondary)', fontSize: '12px', fontWeight: 600 }}>TOPLAM GELİR</span>
             <button onClick={() => handleNavigate('transactions')} style={{ fontSize: '10px', color: 'var(--accent-green)', background: 'none', border: 'none', cursor: 'pointer' }}>Ekle</button>
           </div>
-          <div style={{ fontSize: '30px', fontWeight: 900, marginTop: '8px', color: 'var(--accent-green)' }}>₺{stats.income.toLocaleString()}</div>
+          <div style={{ fontSize: '30px', fontWeight: 900, marginTop: '8px', color: 'var(--accent-green)' }} className="sensitive-data">₺{stats.income.toLocaleString()}</div>
         </div>
         <div className="glass-card" style={{ borderLeft: '4px solid #ef4444', background: 'rgba(239, 68, 68, 0.05)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <span style={{ color: 'var(--text-secondary)', fontSize: '12px', fontWeight: 600 }}>TOPLAM GİDER</span>
             <button onClick={() => handleNavigate('transactions')} style={{ fontSize: '10px', color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer' }}>Ekle</button>
           </div>
-          <div style={{ fontSize: '30px', fontWeight: 900, marginTop: '8px', color: '#ef4444' }}>₺{stats.expense.toLocaleString()}</div>
+          <div style={{ fontSize: '30px', fontWeight: 900, marginTop: '8px', color: '#ef4444' }} className="sensitive-data">₺{stats.expense.toLocaleString()}</div>
         </div>
       </div>
 

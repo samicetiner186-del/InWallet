@@ -3,12 +3,81 @@ import { useAuth } from '../context/AuthContext';
 import { transactionApi } from '../services/api';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
+// SVG Icons
+const IncomeIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="12" y1="19" x2="12" y2="5" />
+    <polyline points="5 12 12 5 19 12" />
+  </svg>
+);
+
+const ExpenseIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="12" y1="5" x2="12" y2="19" />
+    <polyline points="19 12 12 19 5 12" />
+  </svg>
+);
+
+const InvestmentIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
+    <polyline points="16 7 22 7 22 13" />
+  </svg>
+);
+
+const DeleteIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="3 6 5 6 21 6" />
+    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+    <path d="M10 11v6" />
+    <path d="M14 11v6" />
+    <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+  </svg>
+);
+
+const getTxVisual = (type: string) => {
+  const t = (type || '').toUpperCase();
+  if (t === 'INCOME') return {
+    icon: <IncomeIcon />,
+    iconColor: 'var(--accent-green)',
+    iconBg: 'rgba(16,185,129,0.12)',
+    themeColor: 'var(--accent-green)',
+    cardBg: 'rgba(16,185,129,0.04)',
+    cardBorder: 'rgba(16,185,129,0.15)',
+    leftBorder: '#10b981',
+    label: 'GELİR',
+    sign: '+',
+  };
+  if (t === 'INVESTMENT' || t === 'BUY') return {
+    icon: <InvestmentIcon />,
+    iconColor: '#8b5cf6',
+    iconBg: 'rgba(139,92,246,0.12)',
+    themeColor: '#8b5cf6',
+    cardBg: 'rgba(139,92,246,0.04)',
+    cardBorder: 'rgba(139,92,246,0.15)',
+    leftBorder: '#8b5cf6',
+    label: 'YATIRIM',
+    sign: '−',
+  };
+  // EXPENSE (default)
+  return {
+    icon: <ExpenseIcon />,
+    iconColor: '#ef4444',
+    iconBg: 'rgba(239,68,68,0.12)',
+    themeColor: '#ef4444',
+    cardBg: 'rgba(239,68,68,0.04)',
+    cardBorder: 'rgba(239,68,68,0.15)',
+    leftBorder: '#ef4444',
+    label: 'GİDER',
+    sign: '−',
+  };
+};
+
 const Transactions: React.FC = () => {
   const { userId } = useAuth();
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'income' | 'expense'>('all');
-  
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newAmount, setNewAmount] = useState('');
@@ -19,14 +88,10 @@ const Transactions: React.FC = () => {
     if (!userId) return;
     setLoading(true);
     try {
-      console.log("İşlem Geçmişi Yükleniyor... UserID:", userId);
-      const data = await transactionApi.getTransactions(Number(userId)).catch(err => {
-        console.error("API Hatası (İşlemler):", err);
-        return [];
-      });
+      const data = await transactionApi.getTransactions(Number(userId)).catch(() => []);
       setTransactions(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error("Yükleme sırasında hata oluştu:", err);
+    } catch {
+      // silently fail
     } finally {
       setLoading(false);
     }
@@ -34,80 +99,68 @@ const Transactions: React.FC = () => {
 
   useEffect(() => {
     fetchTransactions();
-    const interval = setInterval(fetchTransactions, 10000); // 10 saniyede bir otomatik yenile
+    const interval = setInterval(fetchTransactions, 10000);
     return () => clearInterval(interval);
   }, [userId]);
 
   const handleAddTransaction = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!userId) return;
-
     try {
-      const payload = {
+      await transactionApi.createTransaction({
         amount: Number(newAmount),
         type: newType.toUpperCase(),
         description: newTitle,
         category: newCategory,
         transactionDate: new Date().toISOString(),
-        user: { id: Number(userId) }
-      };
-
-      await transactionApi.createTransaction(payload);
+        user: { id: Number(userId) },
+      });
       setIsModalOpen(false);
       setNewTitle('');
       setNewAmount('');
-      
-      // Delay for DB consistency
-      setTimeout(() => fetchTransactions(), 1500); 
-      alert("İşlem başarıyla kaydedildi!");
+      setTimeout(() => fetchTransactions(), 1500);
+      alert('İşlem başarıyla kaydedildi!');
     } catch (err: any) {
       alert(`Hata: ${err.message || 'İşlem kaydedilemedi.'}`);
     }
   };
 
-  // İstatistikleri hesapla
   const stats = useMemo(() => {
     const income = transactions
       .filter(tx => tx.type?.toLowerCase() === 'income')
       .reduce((sum, tx) => sum + Number(tx.amount || 0), 0);
     const expense = transactions
-      .filter(tx => tx.type?.toLowerCase() === 'expense' || tx.type?.toLowerCase() === 'investment')
+      .filter(tx => ['expense', 'investment'].includes(tx.type?.toLowerCase() || ''))
       .reduce((sum, tx) => sum + Number(tx.amount || 0), 0);
     return { income, expense, balance: income - expense };
   }, [transactions]);
 
-  // Grafik verisini hazırla
   const chartData = useMemo(() => {
     const last7Days = [...Array(7)].map((_, i) => {
       const d = new Date();
       d.setDate(d.getDate() - i);
       return d.toISOString().split('T')[0];
     }).reverse();
-
     return last7Days.map(date => {
-      const dayTransactions = transactions.filter(tx => tx.transactionDate?.startsWith(date));
-      const inc = dayTransactions.filter(tx => tx.type?.toLowerCase() === 'income').reduce((s, t) => s + Number(t.amount), 0);
-      const exp = dayTransactions.filter(tx => tx.type?.toLowerCase() === 'expense').reduce((s, t) => s + Number(t.amount), 0);
-      return { 
-        name: new Date(date).toLocaleDateString('tr-TR', { weekday: 'short' }),
-        gelir: inc,
-        gider: exp
-      };
+      const dayTxs = transactions.filter(tx => tx.transactionDate?.startsWith(date));
+      const inc = dayTxs.filter(tx => tx.type?.toLowerCase() === 'income').reduce((s, t) => s + Number(t.amount), 0);
+      const exp = dayTxs.filter(tx => tx.type?.toLowerCase() === 'expense').reduce((s, t) => s + Number(t.amount), 0);
+      return { name: new Date(date).toLocaleDateString('tr-TR', { weekday: 'short' }), gelir: inc, gider: exp };
     });
   }, [transactions]);
 
   const handleDelete = async (id: number) => {
-    if (!window.confirm("Bu işlemi silmek istediğinize emin misiniz?")) return;
+    if (!window.confirm('Bu işlemi silmek istediğinize emin misiniz?')) return;
     try {
       await transactionApi.deleteTransaction(id);
       fetchTransactions();
-    } catch (err) {
-      alert("İşlem silinemedi.");
+    } catch {
+      alert('İşlem silinemedi.');
     }
   };
 
   const filteredTransactions = transactions.filter(tx => {
-    const rawType = (tx.type || "").toUpperCase().trim();
+    const rawType = (tx.type || '').toUpperCase().trim();
     if (filter === 'all') return true;
     if (filter === 'income') return rawType === 'INCOME';
     if (filter === 'expense') return rawType === 'EXPENSE' || rawType === 'INVESTMENT';
@@ -120,116 +173,207 @@ const Transactions: React.FC = () => {
 
   return (
     <div className="dashboard-grid animate-fade-in">
-      {/* Top Stats Cards */}
+      {/* Stats Cards */}
       <div className="col-span-12" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px', marginBottom: '24px' }}>
-        <div className="glass-card" style={{ borderLeft: '4px solid var(--accent-green)', padding: '20px' }}>
-          <div style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>Toplam Gelir</div>
-          <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--accent-green)', marginTop: '8px' }}>₺{stats.income.toLocaleString()}</div>
+        <div className="glass-card" style={{ borderLeft: '4px solid #10b981', padding: '20px' }}>
+          <div style={{ color: 'var(--text-secondary)', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>Toplam Gelir</div>
+          <div style={{ fontSize: '26px', fontWeight: 900, color: '#10b981', marginTop: '10px' }}>₺{stats.income.toLocaleString('tr-TR')}</div>
         </div>
-        <div className="glass-card" style={{ borderLeft: '4px solid var(--accent-red)', padding: '20px' }}>
-          <div style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>Toplam Gider</div>
-          <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--accent-red)', marginTop: '8px' }}>₺{stats.expense.toLocaleString()}</div>
+        <div className="glass-card" style={{ borderLeft: '4px solid #ef4444', padding: '20px' }}>
+          <div style={{ color: 'var(--text-secondary)', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>Toplam Gider</div>
+          <div style={{ fontSize: '26px', fontWeight: 900, color: '#ef4444', marginTop: '10px' }}>₺{stats.expense.toLocaleString('tr-TR')}</div>
         </div>
         <div className="glass-card" style={{ borderLeft: '4px solid var(--accent-blue)', padding: '20px' }}>
-          <div style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>Nakit Bakiyesi</div>
-          <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary)', marginTop: '8px' }}>₺{stats.balance.toLocaleString()}</div>
+          <div style={{ color: 'var(--text-secondary)', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>Nakit Bakiyesi</div>
+          <div style={{ fontSize: '26px', fontWeight: 900, color: stats.balance >= 0 ? '#10b981' : '#ef4444', marginTop: '10px' }}>₺{stats.balance.toLocaleString('tr-TR')}</div>
         </div>
       </div>
 
-      {/* Chart Section */}
+      {/* Chart */}
       <div className="col-span-12 glass-card" style={{ marginBottom: '24px', padding: '24px' }}>
         <div className="card-header" style={{ marginBottom: '20px' }}>
-          <span className="card-title">Haftalık Nakit Akışı Trendi</span>
+          <span className="card-title">Haftalık Nakit Akışı</span>
         </div>
-        <div style={{ height: '240px', width: '100%' }}>
+        <div style={{ height: '240px' }}>
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={chartData}>
               <defs>
                 <linearGradient id="colorGelir" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="var(--accent-green)" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="var(--accent-green)" stopOpacity={0}/>
+                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="colorGider" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="var(--accent-red)" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="var(--accent-red)" stopOpacity={0}/>
+                  <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: 'var(--text-secondary)', fontSize: 12}} />
-              <YAxis axisLine={false} tickLine={false} tick={{fill: 'var(--text-secondary)', fontSize: 12}} />
-              <Tooltip 
-                contentStyle={{ background: 'rgba(15, 23, 42, 0.9)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px' }}
-                itemStyle={{ fontSize: '12px' }}
-              />
-              <Area type="monotone" dataKey="gelir" stroke="var(--accent-green)" fillOpacity={1} fill="url(#colorGelir)" />
-              <Area type="monotone" dataKey="gider" stroke="var(--accent-red)" fillOpacity={1} fill="url(#colorGider)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(128,128,128,0.1)" vertical={false} />
+              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} />
+              <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} />
+              <Tooltip contentStyle={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '12px' }} />
+              <Area type="monotone" dataKey="gelir" stroke="#10b981" fillOpacity={1} fill="url(#colorGelir)" />
+              <Area type="monotone" dataKey="gider" stroke="#ef4444" fillOpacity={1} fill="url(#colorGider)" />
             </AreaChart>
           </ResponsiveContainer>
         </div>
       </div>
 
-      {/* Transaction List Section */}
+      {/* Transaction List */}
       <div className="col-span-12 glass-card" style={{ padding: '24px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
           <div>
-            <h3 style={{ margin: 0, fontSize: '20px' }}>Son İşlemler</h3>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '13px', margin: '4px 0 0 0' }}>{transactions.length} kayıt listeleniyor</p>
+            <h3 style={{ margin: 0, fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)' }}>Son İşlemler</h3>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '13px', margin: '4px 0 0 0' }}>{transactions.length} kayıt</p>
           </div>
-          
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-            <div style={{ display: 'flex', background: 'rgba(0,0,0,0.2)', padding: '4px', borderRadius: '10px' }}>
-              <button onClick={() => setFilter('all')} style={{ background: filter === 'all' ? 'var(--accent-blue)' : 'transparent', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px' }}>Tümü</button>
-              <button onClick={() => setFilter('income')} style={{ background: filter === 'income' ? 'var(--accent-green)' : 'transparent', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px' }}>Gelirler</button>
-              <button onClick={() => setFilter('expense')} style={{ background: filter === 'expense' ? 'var(--accent-red)' : 'transparent', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px' }}>Giderler</button>
+            {/* Filter tabs */}
+            <div style={{ display: 'flex', background: 'var(--bg-primary)', padding: '4px', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
+              {([
+                { key: 'all', label: 'Tümü' },
+                { key: 'income', label: 'Gelirler' },
+                { key: 'expense', label: 'Giderler' },
+              ] as { key: 'all' | 'income' | 'expense'; label: string }[]).map(tab => (
+                <button
+                  key={tab.key}
+                  onClick={() => setFilter(tab.key)}
+                  style={{
+                    background: filter === tab.key
+                      ? (tab.key === 'income' ? 'rgba(16,185,129,0.15)' : tab.key === 'expense' ? 'rgba(239,68,68,0.15)' : 'rgba(59,130,246,0.15)')
+                      : 'transparent',
+                    color: filter === tab.key
+                      ? (tab.key === 'income' ? '#10b981' : tab.key === 'expense' ? '#ef4444' : 'var(--accent-blue)')
+                      : 'var(--text-secondary)',
+                    border: 'none',
+                    padding: '7px 14px',
+                    borderRadius: '7px',
+                    cursor: 'pointer',
+                    fontSize: '13px',
+                    fontWeight: filter === tab.key ? 700 : 500,
+                    transition: 'all 0.2s ease',
+                  }}
+                >{tab.label}</button>
+              ))}
             </div>
-            <button onClick={() => setIsModalOpen(true)} className="btn-primary" style={{ padding: '10px 20px', borderRadius: '10px' }}>+ Yeni İşlem</button>
+            <button onClick={() => setIsModalOpen(true)} className="btn-primary" style={{ padding: '10px 20px', borderRadius: '10px', fontWeight: 700 }}>
+              + Yeni İşlem
+            </button>
           </div>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {loading && transactions.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '40px' }}>Veriler yükleniyor...</div>
+            <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>Veriler yükleniyor...</div>
           ) : filteredTransactions.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>Henüz işlem kaydı bulunmuyor.</div>
-          ) : (
-            filteredTransactions.map(tx => (
-              <div key={tx.id} className="transaction-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)', position: 'relative' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                  <div style={{ 
-                    width: '40px', height: '40px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    background: tx.type?.toLowerCase() === 'income' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-                    color: tx.type?.toLowerCase() === 'income' ? 'var(--accent-green)' : 'var(--accent-red)'
+          ) : filteredTransactions.map(tx => {
+            const v = getTxVisual(tx.type);
+            return (
+              <div
+                key={tx.id}
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: '14px 20px',
+                  background: v.cardBg,
+                  borderRadius: '14px',
+                  border: `1px solid ${v.cardBorder}`,
+                  borderLeft: `4px solid ${v.leftBorder}`,
+                }}
+              >
+                {/* Left: icon + info */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                  <div style={{
+                    width: '42px', height: '42px', borderRadius: '12px',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: v.iconBg,
+                    color: v.iconColor,
+                    flexShrink: 0,
                   }}>
-                    {tx.type?.toLowerCase() === 'income' ? '💰' : '💸'}
+                    {v.icon}
                   </div>
                   <div>
-                    <div style={{ fontWeight: 600, fontSize: '15px' }}>{tx.description || tx.type}</div>
-                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                      {new Date(tx.transactionDate).toLocaleDateString('tr-TR')} • {tx.category || 'Genel'}
+                    <div style={{ fontWeight: 700, fontSize: '15px', color: 'var(--text-primary)' }}>
+                      {tx.description || tx.type}
+                    </div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '3px' }}>
+                      {new Date(tx.transactionDate).toLocaleDateString('tr-TR')} · {tx.category || 'Genel'}
                     </div>
                   </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                  <div style={{ fontSize: '16px', fontWeight: 800, color: tx.type?.toLowerCase() === 'income' ? 'var(--accent-green)' : 'var(--text-primary)' }}>
-                    {tx.type?.toLowerCase() === 'income' ? '+' : '-'} ₺{Number(tx.amount || 0).toLocaleString()}
+
+                {/* Right: amount + label + delete */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                  <div style={{ textAlign: 'right' }}>
+                    {/* Amount with explicit color */}
+                    <div style={{
+                      fontSize: '17px',
+                      fontWeight: 900,
+                      color: v.themeColor,
+                      letterSpacing: '-0.3px',
+                    }}>
+                      {v.sign} ₺{Number(tx.amount || 0).toLocaleString('tr-TR')}
+                    </div>
+                    {/* Type label badge */}
+                    <div style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      fontSize: '10px',
+                      fontWeight: 800,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.7px',
+                      color: v.themeColor,
+                      marginTop: '4px',
+                      padding: '2px 8px',
+                      borderRadius: '20px',
+                      background: v.cardBorder.replace('0.15', '0.08'),
+                      border: `1px solid ${v.cardBorder}`,
+                    }}>
+                      {v.label}
+                    </div>
                   </div>
-                  <button onClick={() => handleDelete(tx.id)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '18px', opacity: 0.5 }}>🗑️</button>
+                  {/* Delete button */}
+                  <button
+                    onClick={() => handleDelete(tx.id)}
+                    style={{
+                      background: 'rgba(239,68,68,0.07)',
+                      border: '1px solid rgba(239,68,68,0.15)',
+                      color: '#ef4444',
+                      cursor: 'pointer',
+                      width: '34px', height: '34px',
+                      borderRadius: '9px',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      transition: 'all 0.2s ease',
+                      flexShrink: 0,
+                    }}
+                    onMouseEnter={e => {
+                      (e.currentTarget as HTMLButtonElement).style.background = 'rgba(239,68,68,0.18)';
+                      (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(239,68,68,0.4)';
+                    }}
+                    onMouseLeave={e => {
+                      (e.currentTarget as HTMLButtonElement).style.background = 'rgba(239,68,68,0.07)';
+                      (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(239,68,68,0.15)';
+                    }}
+                    title="İşlemi Sil"
+                  >
+                    <DeleteIcon />
+                  </button>
                 </div>
               </div>
-            ))
-          )}
+            );
+          })}
         </div>
       </div>
 
-      {/* Premium Modal */}
+      {/* Add Transaction Modal */}
       {isModalOpen && (
         <div style={{
           position: 'fixed', inset: 0,
           background: 'rgba(0,0,0,0.55)',
           backdropFilter: 'blur(8px)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          zIndex: 1000,
-          padding: '20px',
+          zIndex: 1000, padding: '20px',
         }}>
           <div style={{
             width: '100%', maxWidth: '480px',
@@ -238,9 +382,7 @@ const Transactions: React.FC = () => {
             borderRadius: '24px',
             padding: '32px',
             boxShadow: '0 24px 64px rgba(0,0,0,0.25)',
-            animation: 'fadeIn 0.2s ease',
           }}>
-            {/* Modal Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' }}>
               <div>
                 <h3 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: 'var(--text-primary)' }}>Yeni İşlem</h3>
@@ -248,17 +390,7 @@ const Transactions: React.FC = () => {
               </div>
               <button
                 onClick={() => setIsModalOpen(false)}
-                style={{
-                  width: '36px', height: '36px', borderRadius: '50%',
-                  border: '1px solid var(--border-color)',
-                  background: 'transparent',
-                  color: 'var(--text-secondary)',
-                  fontSize: '20px', cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  transition: 'all 0.2s ease',
-                }}
-                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--border-color)'; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
+                style={{ width: '36px', height: '36px', borderRadius: '50%', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-secondary)', fontSize: '20px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               >×</button>
             </div>
 
@@ -268,100 +400,54 @@ const Transactions: React.FC = () => {
                 type="button"
                 onClick={() => setNewType('expense')}
                 style={{
-                  padding: '12px',
-                  borderRadius: '14px',
+                  padding: '12px', borderRadius: '14px',
                   border: `2px solid ${newType === 'expense' ? '#ef4444' : 'var(--border-color)'}`,
                   background: newType === 'expense' ? 'rgba(239,68,68,0.08)' : 'transparent',
                   color: newType === 'expense' ? '#ef4444' : 'var(--text-secondary)',
-                  fontWeight: 700, fontSize: '14px', cursor: 'pointer',
-                  transition: 'all 0.2s ease',
+                  fontWeight: 700, fontSize: '14px', cursor: 'pointer', transition: 'all 0.2s ease',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
                 }}
-              >Gider</button>
+              >
+                <ExpenseIcon /> Gider
+              </button>
               <button
                 type="button"
                 onClick={() => setNewType('income')}
                 style={{
-                  padding: '12px',
-                  borderRadius: '14px',
+                  padding: '12px', borderRadius: '14px',
                   border: `2px solid ${newType === 'income' ? '#10b981' : 'var(--border-color)'}`,
                   background: newType === 'income' ? 'rgba(16,185,129,0.08)' : 'transparent',
                   color: newType === 'income' ? '#10b981' : 'var(--text-secondary)',
-                  fontWeight: 700, fontSize: '14px', cursor: 'pointer',
-                  transition: 'all 0.2s ease',
+                  fontWeight: 700, fontSize: '14px', cursor: 'pointer', transition: 'all 0.2s ease',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
                 }}
-              >Gelir</button>
+              >
+                <IncomeIcon /> Gelir
+              </button>
             </div>
 
             <form onSubmit={handleAddTransaction} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              {/* Description */}
               <div>
-                <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', letterSpacing: '0.5px', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>Açıklama</label>
+                <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.6px', display: 'block', marginBottom: '8px' }}>Açıklama</label>
                 <input
-                  type="text"
-                  value={newTitle}
-                  onChange={e => setNewTitle(e.target.value)}
-                  placeholder="Örn: Market alışverişi"
-                  required
-                  style={{
-                    width: '100%', padding: '12px 16px',
-                    borderRadius: '12px',
-                    border: '1.5px solid var(--border-color)',
-                    background: 'var(--bg-primary)',
-                    color: 'var(--text-primary)',
-                    fontSize: '14px',
-                    outline: 'none',
-                    boxSizing: 'border-box',
-                    transition: 'border-color 0.2s ease',
-                  }}
-                  onFocus={e => { e.currentTarget.style.borderColor = 'var(--accent-blue)'; }}
-                  onBlur={e => { e.currentTarget.style.borderColor = 'var(--border-color)'; }}
+                  type="text" value={newTitle} onChange={e => setNewTitle(e.target.value)}
+                  placeholder="Örn: Market alışverişi" required
+                  style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1.5px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }}
                 />
               </div>
-
-              {/* Amount */}
               <div>
-                <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', letterSpacing: '0.5px', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>Tutar (₺)</label>
+                <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.6px', display: 'block', marginBottom: '8px' }}>Tutar (₺)</label>
                 <input
-                  type="number"
-                  value={newAmount}
-                  onChange={e => setNewAmount(e.target.value)}
-                  placeholder="0.00"
-                  required
-                  min="0"
-                  step="any"
-                  style={{
-                    width: '100%', padding: '12px 16px',
-                    borderRadius: '12px',
-                    border: '1.5px solid var(--border-color)',
-                    background: 'var(--bg-primary)',
-                    color: 'var(--text-primary)',
-                    fontSize: '20px', fontWeight: 700,
-                    outline: 'none',
-                    boxSizing: 'border-box',
-                    transition: 'border-color 0.2s ease',
-                  }}
-                  onFocus={e => { e.currentTarget.style.borderColor = 'var(--accent-blue)'; }}
-                  onBlur={e => { e.currentTarget.style.borderColor = 'var(--border-color)'; }}
+                  type="number" value={newAmount} onChange={e => setNewAmount(e.target.value)}
+                  placeholder="0.00" required min="0" step="any"
+                  style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1.5px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '20px', fontWeight: 700, outline: 'none', boxSizing: 'border-box' }}
                 />
               </div>
-
-              {/* Category */}
               <div>
-                <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', letterSpacing: '0.5px', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>Kategori</label>
+                <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.6px', display: 'block', marginBottom: '8px' }}>Kategori</label>
                 <select
-                  value={newCategory}
-                  onChange={e => setNewCategory(e.target.value)}
-                  style={{
-                    width: '100%', padding: '12px 16px',
-                    borderRadius: '12px',
-                    border: '1.5px solid var(--border-color)',
-                    background: 'var(--bg-primary)',
-                    color: 'var(--text-primary)',
-                    fontSize: '14px',
-                    outline: 'none',
-                    boxSizing: 'border-box',
-                    cursor: 'pointer',
-                  }}
+                  value={newCategory} onChange={e => setNewCategory(e.target.value)}
+                  style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1.5px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '14px', outline: 'none', boxSizing: 'border-box', cursor: 'pointer' }}
                 >
                   <option value="Market">Market</option>
                   <option value="Maaş">Maaş</option>
@@ -373,41 +459,18 @@ const Transactions: React.FC = () => {
                   <option value="Diğer">Diğer</option>
                 </select>
               </div>
-
-              {/* Action Buttons */}
               <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
                 <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  style={{
-                    flex: 1, padding: '13px',
-                    borderRadius: '12px',
-                    border: '1.5px solid var(--border-color)',
-                    background: 'transparent',
-                    color: 'var(--text-secondary)',
-                    fontSize: '14px', fontWeight: 600,
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                  }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--border-color)'; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
+                  type="button" onClick={() => setIsModalOpen(false)}
+                  style={{ flex: 1, padding: '13px', borderRadius: '12px', border: '1.5px solid var(--border-color)', background: 'transparent', color: 'var(--text-secondary)', fontSize: '14px', fontWeight: 600, cursor: 'pointer' }}
                 >İptal</button>
                 <button
                   type="submit"
                   style={{
-                    flex: 2, padding: '13px',
-                    borderRadius: '12px',
-                    border: 'none',
-                    background: newType === 'income'
-                      ? 'linear-gradient(135deg, #059669, #10b981)'
-                      : 'linear-gradient(135deg, #dc2626, #ef4444)',
-                    color: 'white',
-                    fontSize: '14px', fontWeight: 700,
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                    boxShadow: newType === 'income'
-                      ? '0 4px 15px rgba(16,185,129,0.3)'
-                      : '0 4px 15px rgba(239,68,68,0.3)',
+                    flex: 2, padding: '13px', borderRadius: '12px', border: 'none',
+                    background: newType === 'income' ? 'linear-gradient(135deg, #059669, #10b981)' : 'linear-gradient(135deg, #dc2626, #ef4444)',
+                    color: 'white', fontSize: '14px', fontWeight: 700, cursor: 'pointer',
+                    boxShadow: newType === 'income' ? '0 4px 15px rgba(16,185,129,0.3)' : '0 4px 15px rgba(239,68,68,0.3)',
                   }}
                 >
                   {newType === 'income' ? 'Gelir Kaydet' : 'Gider Kaydet'}

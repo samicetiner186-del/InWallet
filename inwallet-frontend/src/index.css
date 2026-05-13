@@ -30,10 +30,14 @@ body {
 }
 
 .heading-gradient {
-  background: linear-gradient(135deg, #0F172A 0%, #334155 100%);
+  background: linear-gradient(135deg, #0F172A 0%, #1E40AF 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+:root {
+  --portfolio-card-bg: rgba(59,130,246,0.04);
 }
 
 /* Dark Mode Palette */
@@ -109,13 +113,7 @@ a:hover {
   box-shadow: var(--shadow-glow);
 }
 
-/* Typography Utilities */
-.heading-gradient {
-  background: linear-gradient(135deg, #FFFFFF 0%, #94A3B8 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
+/* Typography Utilities - dark mode override handled in [data-theme=dark] block */
 
 .text-success { color: var(--accent-green); }
 .text-danger { color: var(--accent-red); }
@@ -138,14 +136,16 @@ a:hover {
 
 /* Privacy Mode Blur Effect */
 .sensitive-data {
-  transition: filter 0.3s ease, opacity 0.3s ease;
+  transition: filter 0.4s ease, opacity 0.4s ease;
+  display: inline-block;
 }
 
 .privacy-on .sensitive-data {
-  filter: blur(8px);
-  opacity: 0.6;
+  filter: blur(10px);
+  opacity: 0.5;
   user-select: none;
   pointer-events: none;
+  border-radius: 6px;
 }
 
 /* Market Ticker Styles */
