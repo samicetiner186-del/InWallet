@@ -1,7 +1,5 @@
 package com.wallet.ai.service;
 
-import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.core.io.Resource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
