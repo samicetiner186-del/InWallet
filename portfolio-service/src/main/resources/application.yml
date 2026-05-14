@@ -65,3 +65,32 @@ logging:
     org.springframework.web: DEBUG
     org.hibernate.SQL: DEBUG
     com.wallet.portfolio: DEBUG
+
+# ─── Resilience4j — Circuit Breaker & Retry ──────────────────────────────────
+resilience4j:
+  circuitbreaker:
+    instances:
+      yahooFinance:
+        # 5 başarısız istek → devre açılır
+        slidingWindowSize: 5
+        failureRateThreshold: 60
+        # 30 sn açık kaldıktan sonra "half-open" duruma geçer
+        waitDurationInOpenState: 30s
+        permittedNumberOfCallsInHalfOpenState: 2
+        registerHealthIndicator: true
+      geminiApi:
+        slidingWindowSize: 3
+        failureRateThreshold: 67
+        waitDurationInOpenState: 20s
+        permittedNumberOfCallsInHalfOpenState: 1
+        registerHealthIndicator: true
+  retry:
+    instances:
+      yahooFinance:
+        maxAttempts: 3
+        waitDuration: 1s
+        enableExponentialBackoff: true
+        exponentialBackoffMultiplier: 2
+      geminiApi:
+        maxAttempts: 2
+        waitDuration: 500ms

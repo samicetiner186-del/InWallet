@@ -1,10 +1,25 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { motion } from 'framer-motion';
+import type { Variants } from 'framer-motion';
 import FinancialGoalsModal from './FinancialGoalsModal';
 import ScheduledTransactionsModal from './ScheduledTransactionsModal';
 import FinancialHealthScore from './FinancialHealthScore';
+import BudgetStatusWidget from './BudgetStatusWidget';
 import { useAuth } from '../context/AuthContext';
+
 import { assetApi, goalApi, userApi, marketApi, transactionApi } from '../services/api';
+
+// ─── Animasyon Varyantları ───────────────────────────────────────────────────
+const containerVariants: Variants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.1 } },
+};
+
+const cardVariants: Variants = {
+  hidden:  { opacity: 0, y: 28, scale: 0.97 },
+  visible: { opacity: 1, y: 0,  scale: 1, transition: { duration: 0.45, ease: 'easeOut' } },
+};
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444'];
 
@@ -100,9 +115,15 @@ const Dashboard: React.FC = () => {
   }, [assets, marketPrices]);
 
   return (
-    <div className="dashboard-grid animate-fade-in">
+    <motion.div
+      className="dashboard-grid"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+
       {/* Header */}
-      <div className="col-span-12" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', padding: '0 10px' }}>
+      <motion.div variants={cardVariants} className="col-span-12" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', padding: '0 10px' }}>
         <div>
           <h2 style={{ margin: 0, fontSize: '28px', fontWeight: 800, color: 'var(--text-primary)' }}>
             Hoş Geldin, {userData?.username || username || 'Kullanıcı'}
@@ -120,11 +141,11 @@ const Dashboard: React.FC = () => {
           <button onClick={() => handleNavigate('profile')} className="btn-secondary" style={{ padding: '8px 18px' }}>Profilim</button>
           <button onClick={logout} className="btn-danger" style={{ padding: '8px 18px' }}>Çıkış Yap</button>
         </div>
-      </div>
+      </motion.div>
 
-      {/* Main Stats */}
-      <div className="col-span-12" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', marginBottom: '24px' }}>
-        <div className="glass-card" style={{ borderLeft: '4px solid var(--accent-blue)', background: 'rgba(59, 130, 246, 0.08)' }}>
+      {/* Main Stats — Stagger */}
+      <motion.div variants={cardVariants} className="col-span-12" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', marginBottom: '24px' }}>
+        <motion.div variants={cardVariants} className="glass-card" style={{ borderLeft: '4px solid var(--accent-blue)', background: 'rgba(59, 130, 246, 0.08)' }}>
           <div style={{ color: 'var(--text-secondary)', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>TOPLAM NET VARLIK (Nakit + Yatırım)</div>
           <div className="sensitive-data" style={{ fontSize: '32px', fontWeight: 900, marginTop: '8px', color: 'var(--text-primary)' }}>
             ₺{stats.totalNetWorth.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}
@@ -133,38 +154,40 @@ const Dashboard: React.FC = () => {
             <span style={{ color: 'var(--text-secondary)' }}>Nakit: ₺{stats.cashBalance.toLocaleString()}</span>
             <span style={{ color: 'var(--accent-blue)', fontWeight: 600 }}>Varlık: ₺{stats.assetValue.toLocaleString()}</span>
           </div>
-        </div>
+        </motion.div>
         
-        <div className="glass-card" style={{ borderLeft: '4px solid var(--accent-green)', background: 'rgba(16, 185, 129, 0.05)' }}>
+        <motion.div variants={cardVariants} className="glass-card" style={{ borderLeft: '4px solid var(--accent-green)', background: 'rgba(16, 185, 129, 0.05)' }}>
           <div style={{ color: 'var(--text-secondary)', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase' }}>TOPLAM GELİR</div>
           <div style={{ fontSize: '32px', fontWeight: 900, marginTop: '8px', color: 'var(--accent-green)' }} className="sensitive-data">
             ₺{stats.income.toLocaleString()}
           </div>
-        </div>
+        </motion.div>
 
-        <div className="glass-card" style={{ borderLeft: '4px solid #ef4444', background: 'rgba(239, 68, 68, 0.05)' }}>
+        <motion.div variants={cardVariants} className="glass-card" style={{ borderLeft: '4px solid #ef4444', background: 'rgba(239, 68, 68, 0.05)' }}>
           <div style={{ color: 'var(--text-secondary)', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase' }}>GERÇEK GİDERLER</div>
           <div style={{ fontSize: '32px', fontWeight: 900, marginTop: '8px', color: '#ef4444' }} className="sensitive-data">
             ₺{stats.realExpense.toLocaleString()}
           </div>
           <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '5px' }}>Yatırımlar hariç net harcama.</div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
-      {/* Financial Health Score - Dynamic Integration */}
-      <FinancialHealthScore stats={stats} assets={assets} goals={goals} onNavigate={handleNavigate} />
+      {/* Financial Health Score */}
+      <motion.div variants={cardVariants} className="col-span-12">
+        <FinancialHealthScore stats={stats} assets={assets} goals={goals} onNavigate={handleNavigate} />
+      </motion.div>
 
-      {/* Portfolio Distribution */}
-      <div className="col-span-8 glass-card">
+      {/* Portfolio Distribution & Analytics */}
+      <motion.div variants={cardVariants} className="col-span-8 glass-card">
         <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between' }}>
           <span className="card-title">Portföy Dağılımı</span>
           <button onClick={() => handleNavigate('portfolio')} className="btn-secondary" style={{ fontSize: '12px', padding: '6px 14px' }}>Varlıkları Yönet</button>
         </div>
-        <div style={{ height: '300px', width: '100%' }}>
+        <div style={{ height: '350px', width: '100%' }}>
           {portfolioData.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={portfolioData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={70} outerRadius={100} paddingAngle={8}>
+                <Pie data={portfolioData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={80} outerRadius={110} paddingAngle={8}>
                   {portfolioData.map((entry: any, index: number) => <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />)}
                 </Pie>
                 <Tooltip contentStyle={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '12px' }} />
@@ -172,45 +195,68 @@ const Dashboard: React.FC = () => {
               </PieChart>
             </ResponsiveContainer>
           ) : (
+
             <div style={{ textAlign: 'center', padding: '100px', color: 'var(--text-secondary)' }}>
               <p>Henüz yatırım verisi yok.</p>
               <button onClick={() => handleNavigate('portfolio')} className="btn-primary" style={{ marginTop: '15px' }}>Varlık Ekle</button>
             </div>
           )}
         </div>
+      </motion.div>
+
+      {/* Side Widgets Column */}
+      <div className="col-span-4" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        {/* Goals Sidebar */}
+        <motion.div variants={cardVariants} className="glass-card" style={{ flex: 1 }}>
+          <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span className="card-title">Hedefler</span>
+            <button onClick={() => handleNavigate('goals')} className="btn-secondary" style={{ fontSize: '11px', padding: '4px 10px' }}>Tümü →</button>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '10px' }}>
+            {goals.length > 0 ? goals.slice(0, 3).map(goal => {
+              const target = Number(goal.currentTargetPrice || goal.targetAmount || 1);
+              const progress = Math.min(100, (stats.totalNetWorth / target) * 100);
+              return (
+                <div key={goal.id}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '8px' }}>
+                    <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{goal.name}</span>
+                    <span style={{ fontWeight: 800, color: 'var(--accent-blue)' }}>%{progress.toFixed(0)}</span>
+                  </div>
+                  <div style={{ height: '8px', background: 'var(--bg-primary)', borderRadius: '4px', overflow: 'hidden' }}>
+                    <motion.div 
+                      initial={{ width: 0 }}
+                      animate={{ width: `${progress}%` }}
+                      transition={{ duration: 1.2, ease: "easeOut" }}
+                      style={{ 
+                        height: '100%', 
+                        width: `${progress}%`, 
+                        background: 'linear-gradient(90deg, var(--accent-blue), #6366f1)', 
+                        borderRadius: '4px',
+                        boxShadow: '0 0 10px rgba(59, 130, 246, 0.3)'
+                      }} 
+                    />
+                  </div>
+                </div>
+              );
+            }) : (
+              <p style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: '13px', padding: '20px' }}>Henüz hedef yok.</p>
+            )}
+          </div>
+        </motion.div>
+
+        {/* Budget Status Widget */}
+        <motion.div variants={cardVariants}>
+          <BudgetStatusWidget />
+        </motion.div>
       </div>
 
-      {/* Goals Sidebar */}
-      <div className="col-span-4 glass-card">
-        <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span className="card-title">Hedef İlerlemesi</span>
-          <button onClick={() => handleNavigate('goals')} className="btn-secondary" style={{ fontSize: '11px', padding: '4px 10px' }}>Tümü →</button>
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '20px' }}>
-          <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '5px' }}>Hedefleriniz <b>Net Varlığınız</b> üzerinden hesaplanır.</p>
-          {goals.length > 0 ? goals.slice(0, 4).map(goal => {
-            const target = Number(goal.currentTargetPrice || goal.targetAmount || 1);
-            const progress = Math.min(100, (stats.totalNetWorth / target) * 100);
-            return (
-              <div key={goal.id}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '8px' }}>
-                  <span style={{ fontWeight: 600 }}>{goal.name}</span>
-                  <span style={{ fontWeight: 800, color: 'var(--accent-blue)' }}>%{progress.toFixed(1)}</span>
-                </div>
-                <div style={{ height: '6px', background: 'var(--bg-primary)', borderRadius: '3px', overflow: 'hidden' }}>
-                  <div style={{ height: '100%', width: `${progress}%`, background: 'var(--accent-blue)', borderRadius: '3px', transition: 'width 1s ease' }}></div>
-                </div>
-              </div>
-            );
-          }) : <p style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: '13px', padding: '20px' }}>Henüz hedef belirlenmedi.</p>}
-        </div>
-      </div>
+
 
       <FinancialGoalsModal isOpen={isGoalsModalOpen} onClose={() => { setIsGoalsModalOpen(false); setRefreshKey(k => k + 1); }} />
       {scheduledModalType && (
         <ScheduledTransactionsModal type={scheduledModalType} isOpen={!!scheduledModalType} onClose={() => { setScheduledModalType(null); setRefreshKey(k => k + 1); }} />
       )}
-    </div>
+    </motion.div>
   );
 };
 

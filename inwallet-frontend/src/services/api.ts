@@ -275,7 +275,13 @@ export const marketApi = {
     if (!res.ok) throw new Error('Piyasa verileri alınamadı.');
     return res.json();
   },
+  getHistoricalPrices: async (symbol: string, range: string = '1y') => {
+    const res = await request(`${BASE_URL}/api/market/historical/${symbol}?range=${range}`);
+    if (!res.ok) throw new Error('Geçmiş veriler alınamadı.');
+    return res.json();
+  },
 };
+
 
 // ─── Recurring Transactions Endpoint ──────────────────────
 export const recurringTransactionApi = {
@@ -313,3 +319,76 @@ export const recurringTransactionApi = {
     return res.text();
   }
 };
+
+// ─── Financial Health & Intelligence Endpoints ─────────────
+export const financialHealthApi = {
+  /** 5 metrikli finansal sağlık skoru (backend hesaplama) */
+  getHealthScore: async (userId: number) => {
+    const res = await request(`${BASE_URL}/api/financial-health/${userId}`, { headers: authHeaders(false) });
+    if (!res.ok) throw new Error('Sağlık skoru alınamadı.');
+    return res.json();
+  },
+
+  /** 1/3/5 yıllık enflasyon savunma analizi */
+  getInflationDefense: async (userId: number, inflationRate = 45) => {
+    const res = await request(
+      `${BASE_URL}/api/financial-health/${userId}/inflation-defense?rate=${inflationRate}`,
+      { headers: authHeaders(false) }
+    );
+    if (!res.ok) throw new Error('Enflasyon analizi alınamadı.');
+    return res.json();
+  },
+
+  /** Belirli bir tutar için yıllık enflasyon simülasyonu */
+  getInflationImpact: async (amount: number, years: number, rate: number) => {
+    const res = await request(
+      `${BASE_URL}/api/financial-health/inflation-impact?amount=${amount}&years=${years}&rate=${rate}`,
+      { headers: authHeaders(false) }
+    );
+    if (!res.ok) throw new Error('Enflasyon etkisi hesaplanamadı.');
+    return res.json();
+  },
+
+  /** AI servisi için zenginleştirilmiş finansal bağlam */
+  getAiContext: async (userId: number) => {
+    const res = await request(`${BASE_URL}/api/financial-health/${userId}/ai-context`, { headers: authHeaders(false) });
+    if (!res.ok) throw new Error('AI bağlamı alınamadı.');
+    return res.json();
+  },
+};
+
+// ─── Budget Endpoint ─────────────────────────────────────────
+export const budgetApi = {
+  getBudgets: async (userId: number) => {
+    const res = await request(`${BASE_URL}/api/budgets/user/${userId}`, { headers: authHeaders(false) });
+    if (!res.ok) throw new Error('Bütçe bilgileri alınamadı.');
+    return res.json();
+  },
+
+  getBudgetStatus: async (userId: number) => {
+    const res = await request(`${BASE_URL}/api/budgets/user/${userId}/status`, { headers: authHeaders() });
+    if (!res.ok) throw new Error('Bütçe durumu alınamadı.');
+    return res.json();
+  },
+
+
+  createBudget: async (budget: object) => {
+    const res = await request(`${BASE_URL}/api/budgets`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify(budget),
+    });
+    if (!res.ok) throw new Error('Bütçe oluşturulamadı.');
+    return res.json();
+  },
+
+  deleteBudget: async (id: number) => {
+    const res = await request(`${BASE_URL}/api/budgets/${id}`, {
+      method: 'DELETE',
+      headers: authHeaders(),
+    });
+    if (!res.ok) throw new Error('Bütçe silinemedi.');
+    return true;
+  },
+};
+

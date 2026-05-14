@@ -22,4 +22,12 @@ public class MarketController {
     public ResponseEntity<Map<String, BigDecimal>> getAllPrices() {
         return ResponseEntity.ok(marketDataService.getAllPrices());
     }
+
+    @GetMapping("/historical/{symbol}")
+    public ResponseEntity<Map<Long, BigDecimal>> getHistoricalPrices(
+            @PathVariable String symbol,
+            @RequestParam(defaultValue = "1y") String range) {
+        return ResponseEntity.ok(marketDataService.getHistoricalPrices(symbol, range));
+    }
 }
+

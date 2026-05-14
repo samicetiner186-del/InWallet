@@ -1,34 +1,83 @@
 import { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import './AIChatWidget.css';
 import { aiApi } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
+// Tarayıcı Speech API tip tanımları
+declare global {
+  interface Window {
+    SpeechRecognition: any;
+    webkitSpeechRecognition: any;
+  }
+}
+
+// ─── Voice Waveform Component ─────────────────────────────────────────────
+const VoiceWaveform: React.FC<{ active: boolean; color?: string }> = ({ active, color = 'var(--accent-blue)' }) => {
+  return (
+    <div className={`voice-waveform ${active ? 'active' : ''}`} style={{ display: 'flex', alignItems: 'center', gap: '3px', height: '18px' }}>
+      {[0.4, 0.7, 1.0, 0.8, 0.5].map((scale, i) => (
+        <motion.div
+          key={i}
+          animate={active ? {
+            height: [ '4px', `${scale * 16}px`, '4px' ],
+            opacity: [0.5, 1, 0.5]
+          } : { height: '3px', opacity: 0.3 }}
+          transition={{
+            repeat: Infinity,
+            duration: 0.6,
+            delay: i * 0.1,
+            ease: "easeInOut"
+          }}
+          style={{
+            width: '3px',
+            backgroundColor: color,
+            borderRadius: '2px'
+          }}
+        />
+      ))}
+    </div>
+  );
+};
+
 const AIChatWidget: React.FC = () => {
   const { userId } = useAuth();
-  const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<{sender: 'ai'|'user'|'error', text: string}[]>([
-    { sender: 'ai', text: 'Merhaba! Ben InWallet Asistanı. Cüzdanınızı analiz edebilir veya yatırım hedefleriniz hakkında tavsiye verebilirim.' }
+  const [isOpen, setIsOpen]       = useState(false);
+  const [messages, setMessages]   = useState<{sender: 'ai'|'user'|'error', text: string}[]>([
+    { sender: 'ai', text: 'Merhaba! Ben InWallet Asistanı. Cüzdanınızı analiz edebilir, işlem kaydedebilir veya yatırım hedefleriniz hakkında tavsiye verebilirim. 🎤 Mikrofona basarak sesli de sorabilirsiniz!\n\nNOT: Bu bilgiler yatırım tavsiyesi değildir.' }
   ]);
-  const [input, setInput] = useState('');
+  const [input, setInput]         = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [isSpeaking, setIsSpeaking]   = useState(false);
+  const [isVoiceEnabled, setIsVoiceEnabled] = useState(() => {
+    const saved = localStorage.getItem('ai_voice_enabled');
+    return saved ? JSON.parse(saved) : false;
+  });
+  const [speechSupported]             = useState(() =>
+    !!(window.SpeechRecognition || window.webkitSpeechRecognition)
+  );
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioChunksRef = useRef<BlobPart[]>([]);
+  const recognitionRef = useRef<any>(null);
 
   const toggleChat = () => setIsOpen(!isOpen);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  const toggleVoice = () => {
+    const newVal = !isVoiceEnabled;
+    setIsVoiceEnabled(newVal);
+    localStorage.setItem('ai_voice_enabled', JSON.stringify(newVal));
+    if (!newVal) {
+      stopSpeaking();
+    }
   };
 
   useEffect(() => {
-    scrollToBottom();
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isLoading]);
 
+  // ─── Metin Gönder ──────────────────────────────────────────────────────────
   const sendMessage = async (e?: React.FormEvent, overrideText?: string) => {
     if (e) e.preventDefault();
-    
     const userText = overrideText || input.trim();
     if (!userText) return;
 
@@ -39,169 +88,272 @@ const AIChatWidget: React.FC = () => {
     try {
       const data = await aiApi.chat(userId ?? 1, userText);
       setMessages(prev => [...prev, { sender: 'ai', text: data }]);
+      if (isVoiceEnabled) {
+        speakText(data);
+      }
     } catch (err: any) {
-      setMessages(prev => [...prev, { 
-        sender: 'error', 
-        text: err.message.includes('Failed to fetch') 
-          ? 'Bağlantı hatası: AI Asistan servisine ulaşılamıyor. Lütfen backend\'in çalıştığından emin olun.' 
-          : `Hata: ${err.message}` 
+      setMessages(prev => [...prev, {
+        sender: 'error',
+        text: err.message.includes('Failed to fetch')
+          ? 'Bağlantı hatası: AI Asistan servisine ulaşılamıyor.'
+          : `Hata: ${err.message}`
       }]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const startRecording = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
-      mediaRecorderRef.current = mediaRecorder;
-      audioChunksRef.current = [];
-
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          audioChunksRef.current.push(event.data);
-        }
-      };
-
-      mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        await handleAudioSend(audioBlob);
-      };
-
-      mediaRecorder.start();
-      setIsRecording(true);
-    } catch (err) {
-      console.error("Mikrofon erişim hatası:", err);
-      alert("Mikrofon erişimine izin vermeniz gerekiyor.");
+  // ─── Web Speech API (STT) ─────────────────────────────────────────────────
+  const startVoiceRecognition = () => {
+    if (!speechSupported) {
+      alert('Tarayıcınız sesli komut özelliğini desteklemiyor. Chrome veya Edge kullanın.');
+      return;
     }
-  };
 
-  const stopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognitionRef.current = recognition;
+
+    recognition.lang          = 'tr-TR';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+    recognition.continuous    = false;
+
+    recognition.onstart = () => setIsRecording(true);
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
       setIsRecording(false);
-      mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+      sendMessage(undefined, transcript);
+    };
+
+    recognition.onerror = (event: any) => {
+      setIsRecording(false);
+      if (event.error !== 'no-speech') {
+        setMessages(prev => [...prev, {
+          sender: 'error',
+          text: `🎤 Ses tanıma hatası: ${event.error}. Lütfen tekrar deneyin.`
+        }]);
+      }
+    };
+
+    recognition.onend = () => setIsRecording(false);
+    recognition.start();
+  };
+
+  const stopVoiceRecognition = () => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+      setIsRecording(false);
     }
   };
 
-  const handleAudioSend = async (audioBlob: Blob) => {
-    setIsLoading(true);
-    setMessages(prev => [...prev, { sender: 'user', text: '🎤 (Sesli mesaj gönderildi)' }]);
-    try {
-      const responseText = await aiApi.chatWithAudio(userId ?? 1, audioBlob);
-      setMessages(prev => [...prev, { sender: 'ai', text: responseText }]);
-    } catch (err) {
-      setMessages(prev => [...prev, { sender: 'error', text: 'Yapay zeka asistanı sesinizi işlerken bir hata oluştu.' }]);
-    } finally {
-      setIsLoading(false);
-    }
+  // ─── TTS (Text-to-Speech) ─────────────────────────────────────────────────
+  const speakText = (text: string) => {
+    if (!window.speechSynthesis || !isVoiceEnabled) return;
+    const cleanText = text.replace(/⚠️.*?$/s, '').replace(/NOT:.*?$/s, '').trim().slice(0, 400);
+    if (!cleanText) return;
+
+    window.speechSynthesis.cancel();
+    const utterance   = new SpeechSynthesisUtterance(cleanText);
+    utterance.lang    = 'tr-TR';
+    utterance.rate    = 1.05;
+    utterance.pitch   = 1.0;
+    utterance.volume  = 0.9;
+
+    utterance.onstart = () => setIsSpeaking(true);
+    utterance.onend   = () => setIsSpeaking(false);
+    utterance.onerror = () => setIsSpeaking(false);
+
+    window.speechSynthesis.speak(utterance);
   };
 
+  const stopSpeaking = () => {
+    window.speechSynthesis?.cancel();
+    setIsSpeaking(false);
+  };
+
+  // ─── Render ───────────────────────────────────────────────────────────────
   return (
     <div className="ai-chat-wrapper">
-      {isOpen && (
-        <div className="ai-chat-window">
-          <div className="ai-chat-header">
-            <div className="ai-header-info">
-              <div className="ai-avatar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, var(--accent-neon-blue), var(--accent-blue))', color: 'white', borderRadius: '12px', width: '38px', height: '38px', boxShadow: '0 4px 15px rgba(59, 130, 246, 0.4)' }}>
-                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"/>
-                  <path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"/>
-                  <path d="M15 13a4.5 4.5 0 0 1-3-4 4.5 4.5 0 0 1-3 4"/>
-                  <path d="M17.599 6.5a3 3 0 0 0 .399-1.375"/>
-                  <path d="M6.002 6.5A3 3 0 0 1 5.602 5.125"/>
-                  <path d="M11.58 12.55a3 3 0 0 1 .42-2.05"/>
-                  <path d="M12.42 12.55a3 3 0 0 0-.42-2.05"/>
-                </svg>
-              </div>
-              <div>
-                <h4>InWallet AI</h4>
-                <div className="ai-status">
-                  <span className="status-dot"></span> Online
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div 
+            className="ai-chat-window glassmorphism"
+            initial={{ opacity: 0, scale: 0.8, y: 40, x: 20, filter: 'blur(10px)' }}
+            animate={{ opacity: 1, scale: 1, y: 0, x: 0, filter: 'blur(0px)' }}
+            exit={{ opacity: 0, scale: 0.8, y: 40, x: 20, filter: 'blur(10px)' }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+          >
+            <div className="ai-chat-header">
+              <div className="ai-header-info">
+                <div className="ai-avatar-wrapper">
+                  <div className="ai-avatar premium-glow">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"/>
+                      <path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"/>
+                      <path d="M15 13a4.5 4.5 0 0 1-3-4 4.5 4.5 0 0 1-3 4"/>
+                    </svg>
+                  </div>
+                  {(isSpeaking || isRecording) && <span className="avatar-pulse"></span>}
                 </div>
+                <div>
+                  <h4 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    InWallet AI
+                    {(isSpeaking || isRecording) && <VoiceWaveform active={true} color={isRecording ? '#ef4444' : 'var(--accent-blue)'} />}
+                  </h4>
+                  <div className="ai-status">
+                    <span className={`status-dot ${isRecording ? 'recording' : isSpeaking ? 'speaking' : ''}`}></span>
+                    {isSpeaking ? 'Konuşuyor...' : isRecording ? 'Dinliyor...' : 'Online'}
+                  </div>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                <button
+                  onClick={toggleVoice}
+                  title={isVoiceEnabled ? 'Sesi Kapat' : 'Sesi Aç'}
+                  className={`voice-toggle-btn ${isVoiceEnabled ? 'active' : ''}`}
+                >
+                  {isVoiceEnabled ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                      <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+                      <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                    </svg>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                      <line x1="23" y1="9" x2="17" y2="15"></line>
+                      <line x1="17" y1="9" x2="23" y2="15"></line>
+                    </svg>
+                  )}
+                </button>
+
+                <button onClick={toggleChat} className="close-btn" aria-label="Close chat">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
               </div>
             </div>
-            <button onClick={toggleChat} className="close-btn" aria-label="Close chat">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
-            </button>
-          </div>
-          
-          <div className="ai-chat-messages">
-            {messages.map((msg, idx) => (
-              <div key={idx} className={`chat-message-container ${msg.sender}`}>
-                <div className={`chat-bubble ${msg.sender}`}>
-                  <p>{msg.text}</p>
-                </div>
-                <span className="chat-time">{new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</span>
-              </div>
-            ))}
-            {isLoading && (
-              <div className="chat-message-container ai">
-                <div className="chat-bubble ai typing-indicator">
-                  <span></span><span></span><span></span>
-                </div>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
-          
-            <div style={{ padding: '0 16px 12px 16px', display: 'flex', gap: '8px', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }} className="hide-scrollbar">
-            <button 
-              onClick={() => sendMessage(undefined, 'Portföyümü analiz et')}
-              style={{ whiteSpace: 'nowrap', padding: '6px 12px', background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.2)', borderRadius: '16px', fontSize: '12px', color: 'var(--accent-blue)', cursor: 'pointer', transition: 'all 0.2s' }}
-            >
-              📊 Portföy Analizi
-            </button>
-            <button 
-              onClick={() => sendMessage(undefined, 'Hedeflerim için enflasyon riskimi hesapla')}
-              style={{ whiteSpace: 'nowrap', padding: '6px 12px', background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.2)', borderRadius: '16px', fontSize: '12px', color: '#f59e0b', cursor: 'pointer', transition: 'all 0.2s' }}
-            >
-              🔥 Enflasyon Riski
-            </button>
-          </div>
 
-          <div className="ai-chat-input-wrapper">
-            <form className="ai-chat-input" onSubmit={sendMessage}>
-              <input 
-                type="text" 
-                placeholder="Asistana bir soru sorun..." 
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                disabled={isLoading || isRecording}
-              />
-              <button type="submit" disabled={!input.trim() || isLoading || isRecording} className="send-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="22" y1="2" x2="11" y2="13"></line>
-                  <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                </svg>
-              </button>
-            </form>
-            <button 
-              className={`mic-button ${isRecording ? 'recording' : ''}`}
-              onMouseDown={startRecording}
-              onMouseUp={stopRecording}
-              onTouchStart={startRecording}
-              onTouchEnd={stopRecording}
-              disabled={isLoading}
-              title="Konuşmak için basılı tutun"
-            >
-              {isRecording ? '🎙️' : '🎤'}
-            </button>
-          </div>
-        </div>
-      )}
-      
+            <div className="ai-chat-messages">
+              <AnimatePresence initial={false}>
+                {messages.map((msg, idx) => (
+                  <motion.div
+                    key={idx}
+                    className={`chat-message-container ${msg.sender}`}
+                    initial={{ opacity: 0, y: 12, scale: 0.97 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+                  >
+                    <div className={`chat-bubble ${msg.sender} ${msg.sender === 'ai' ? 'glassmorphism-light' : ''}`}>
+                      <p style={{ whiteSpace: 'pre-wrap' }}>{msg.text}</p>
+                    </div>
+                    <span className="chat-time">{new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</span>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+              {isLoading && (
+                <motion.div
+                  className="chat-message-container ai"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                >
+                  <div className="chat-bubble ai typing-indicator glassmorphism-light">
+                    <span></span><span></span><span></span>
+                  </div>
+                </motion.div>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+
+            <div className="quick-commands-wrapper hide-scrollbar">
+              {[
+                { label: '📊 Portföy Analizi',     msg: 'Portföyümü analiz et',                 color: '#3b82f6' },
+                { label: '🔥 Enflasyon Riski',     msg: 'Nakit paramın enflasyon riskini hesapla', color: '#f59e0b' },
+                { label: '🏥 Sağlık Skorum',       msg: 'Finansal sağlık skorumu açıkla',        color: '#10b981' },
+                { label: '📈 DCA Tavsiyesi',        msg: 'Aylık 3000 TL ile hangi varlığa DCA yapmalıyım?', color: '#a78bfa' },
+              ].map(q => (
+                <motion.button
+                  whileHover={{ scale: 1.05, translateY: -2 }}
+                  whileTap={{ scale: 0.95 }}
+                  key={q.label}
+                  onClick={() => sendMessage(undefined, q.msg)}
+                  style={{ background: `${q.color}18`, border: `1px solid ${q.color}30`, color: q.color }}
+                  className="quick-cmd-btn"
+                >
+                  {q.label}
+                </motion.button>
+              ))}
+            </div>
+
+            <div className="ai-chat-input-wrapper">
+              <form className="ai-chat-input" onSubmit={sendMessage}>
+                <input
+                  type="text"
+                  placeholder={isRecording ? '🎤 Dinliyor...' : 'Asistana bir soru sorun...'}
+                  value={input}
+                  onChange={e => setInput(e.target.value)}
+                  disabled={isLoading || isRecording}
+                />
+                <motion.button 
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  type="submit" 
+                  disabled={!input.trim() || isLoading || isRecording} 
+                  className="send-btn"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                  </svg>
+                </motion.button>
+              </form>
+
+              {speechSupported ? (
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  className={`mic-button ${isRecording ? 'recording' : ''}`}
+                  onMouseDown={startVoiceRecognition}
+                  onMouseUp={stopVoiceRecognition}
+                  onTouchStart={startVoiceRecognition}
+                  onTouchEnd={stopVoiceRecognition}
+                  disabled={isLoading}
+                  title={isRecording ? 'Bırakın — tanıma başlıyor' : 'Konuşmak için basılı tutun'}
+                >
+                  {isRecording ? (
+                    <div className="mic-active-icon"></div>
+                  ) : '🎤'}
+                </motion.button>
+              ) : (
+                <button className="mic-button" disabled title="Desteklenmiyor">🎤</button>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {!isOpen && (
-        <button className="ai-chat-fab pulse-animation" onClick={toggleChat} aria-label="Open AI Assistant" style={{ fontSize: '24px' }}>
+        <motion.button 
+          className="ai-chat-fab pulse-animation premium-glow" 
+          onClick={toggleChat} 
+          aria-label="Open AI Assistant"
+          whileHover={{ scale: 1.1, rotate: 5 }}
+          whileTap={{ scale: 0.9 }}
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: "spring", damping: 12, stiffness: 200 }}
+        >
           ✨
-        </button>
+        </motion.button>
       )}
     </div>
   );
 };
 
 export default AIChatWidget;
+

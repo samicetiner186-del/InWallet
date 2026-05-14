@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion';
 
 interface Metric {
   key: string;
@@ -32,6 +33,11 @@ interface FinancialHealthScoreProps {
 const FinancialHealthScore: React.FC<FinancialHealthScoreProps> = ({ stats, assets, goals }) => {
   const [expanded, setExpanded] = useState(false);
   const [activeMetric, setActiveMetric] = useState<Metric | null>(null);
+
+  // ─── Sayaç Animasyonu (0 → totalScore) ──────────────────────
+  const motionScore = useMotionValue(0);
+  const springScore = useSpring(motionScore, { stiffness: 60, damping: 18 });
+  const displayScore = useTransform(springScore, (v) => Math.round(v));
 
   const metrics: Metric[] = useMemo(() => {
     // 1. Tasarruf Oranı: (Gelir - Gerçek Gider) / Gelir
@@ -156,6 +162,11 @@ const FinancialHealthScore: React.FC<FinancialHealthScoreProps> = ({ stats, asse
 
   const totalScore = Math.round(metrics.reduce((sum, m) => sum + (m.score * m.weight) / 100, 0));
 
+  // Skor değişince animasyonu tetikle
+  useEffect(() => {
+    motionScore.set(totalScore);
+  }, [totalScore]);
+
   const getGrade = (score: number) => {
     if (score >= 90) return { label: 'Mükemmel', color: '#10b981', emoji: '🏆' };
     if (score >= 75) return { label: 'Çok İyi', color: '#60a5fa', emoji: '⭐' };
@@ -191,16 +202,21 @@ const FinancialHealthScore: React.FC<FinancialHealthScoreProps> = ({ stats, asse
             <div style={{ position: 'relative', width: '140px', height: '140px' }}>
               <svg width="140" height="140" style={{ transform: 'rotate(-90deg)' }}>
                 <circle cx="70" cy="70" r={radius} fill="none" stroke="var(--bg-primary)" strokeWidth="12" />
-                <circle
+                <motion.circle
                   cx="70" cy="70" r={radius} fill="none"
                   stroke={grade.color} strokeWidth="12"
-                  strokeDasharray={circumference} strokeDashoffset={dashOffset}
+                  strokeDasharray={circumference}
+                  initial={{ strokeDashoffset: circumference }}
+                  animate={{ strokeDashoffset: dashOffset }}
+                  transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
                   strokeLinecap="round"
-                  style={{ transition: 'stroke-dashoffset 1s ease', filter: `drop-shadow(0 0 8px ${grade.color}80)` }}
+                  style={{ filter: `drop-shadow(0 0 8px ${grade.color}80)` }}
                 />
               </svg>
               <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                <div style={{ fontSize: '34px', fontWeight: 900, color: grade.color }}>{totalScore}</div>
+                <motion.div style={{ fontSize: '34px', fontWeight: 900, color: grade.color }}>
+                  {displayScore}
+                </motion.div>
               </div>
             </div>
             <div style={{ padding: '5px 14px', borderRadius: '20px', fontSize: '13px', fontWeight: 700, color: grade.color, background: `${grade.color}18` }}>
@@ -225,16 +241,33 @@ const FinancialHealthScore: React.FC<FinancialHealthScoreProps> = ({ stats, asse
           </div>
         </div>
 
-        {expanded && (
-          <div style={{ marginTop: '24px', paddingTop: '24px', borderTop: '1px dashed var(--border-color)', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '12px' }}>
-            {metrics.map(m => (
-              <div key={m.key} onClick={() => setActiveMetric(m)} style={{ padding: '14px', background: `${m.color}08`, borderRadius: '12px', cursor: 'pointer' }}>
-                <div style={{ fontSize: '12px', fontWeight: 700, color: m.color, marginBottom: '4px' }}>{m.label}</div>
-                <div style={{ fontSize: '12.5px', color: 'var(--text-secondary)' }}>{m.tip}</div>
-              </div>
-            ))}
-          </div>
-        )}
+        <AnimatePresence>
+          {expanded && (
+            <motion.div
+              key="details"
+              initial={{ opacity: 0, height: 0, marginTop: 0 }}
+              animate={{ opacity: 1, height: 'auto', marginTop: 24 }}
+              exit={{ opacity: 0, height: 0, marginTop: 0 }}
+              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+              style={{ paddingTop: '24px', borderTop: '1px dashed var(--border-color)', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '12px', overflow: 'hidden' }}
+            >
+              {metrics.map((m, i) => (
+                <motion.div
+                  key={m.key}
+                  onClick={() => setActiveMetric(m)}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.06, duration: 0.3 }}
+                  whileHover={{ y: -3, boxShadow: `0 8px 24px ${m.color}20` }}
+                  style={{ padding: '14px', background: `${m.color}08`, borderRadius: '12px', cursor: 'pointer', border: `1px solid ${m.color}18` }}
+                >
+                  <div style={{ fontSize: '12px', fontWeight: 700, color: m.color, marginBottom: '4px' }}>{m.label}</div>
+                  <div style={{ fontSize: '12.5px', color: 'var(--text-secondary)' }}>{m.tip}</div>
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       <MetricDetailModal metric={activeMetric} onClose={() => setActiveMetric(null)} />

@@ -1,6 +1,8 @@
 package com.wallet.portfolio.service;
 
+import com.wallet.portfolio.dto.AssetEvent;
 import com.wallet.portfolio.entity.Asset;
+import com.wallet.portfolio.kafka.AssetEventProducer;
 import com.wallet.portfolio.repository.AssetRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
@@ -10,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,6 +22,7 @@ public class AssetService {
 
     private final AssetRepository assetRepository;
     private final MarketDataService marketDataService;
+    private final AssetEventProducer assetEventProducer;
 
     @Cacheable(value = "assets", key = "#userId")
     public List<Asset> getAssetsByUserId(Long userId) {
@@ -73,11 +77,15 @@ public class AssetService {
             existingAsset.setQuantity(totalQuantity);
             if (newAsset.getType() != null) existingAsset.setType(newAsset.getType());
             
-            return assetRepository.save(existingAsset);
+            Asset saved = assetRepository.save(existingAsset);
+            publishAssetEvent(saved, "UPDATED");
+            return saved;
         } else {
             if (newAsset.getAverageBuyPrice() == null) newAsset.setAverageBuyPrice(BigDecimal.ZERO);
             if (newAsset.getQuantity() == null) newAsset.setQuantity(BigDecimal.ZERO);
-            return assetRepository.save(newAsset);
+            Asset saved = assetRepository.save(newAsset);
+            publishAssetEvent(saved, "ADDED");
+            return saved;
         }
     }
 
@@ -85,5 +93,23 @@ public class AssetService {
     @CacheEvict(value = "assets", allEntries = true)
     public void deleteAsset(Long id) {
         assetRepository.deleteById(id);
+    }
+
+    private void publishAssetEvent(Asset asset, String action) {
+        try {
+            if (asset.getUser() == null) return;
+            AssetEvent event = AssetEvent.builder()
+                    .userId(asset.getUser().getId())
+                    .symbol(asset.getSymbol())
+                    .type(asset.getType())
+                    .quantity(asset.getQuantity())
+                    .price(asset.getAverageBuyPrice())
+                    .action(action)
+                    .timestamp(Instant.now())
+                    .build();
+            assetEventProducer.sendAssetEvent(event);
+        } catch (Exception e) {
+            // Non-critical: asset işlemi başarılı oldu, sadece event gönderilmedi
+        }
     }
 }
