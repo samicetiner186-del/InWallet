@@ -365,8 +365,7 @@ public class AIAssistantService {
         }
     }
 
-    public byte[] chatWithVoice(Resource audioFile, Long userId) {
-        String response = chatWithAgent("Sesli mesaj gönderildi.", userId);
-        return response.getBytes();
+    public String chatWithVoice(Resource audioFile, Long userId) {
+        return chatWithAgent("Sesli mesaj gönderildi.", userId);
     }
 }
