@@ -6,9 +6,26 @@ spring:
     name: ai-assistant-service
   ai:
     openai:
-      api-key: ${GEMINI_API_KEY:senin-api-key}
+      api-key: ${GEMINI_API_KEY}
       base-url: https://generativelanguage.googleapis.com/v1beta/openai
       chat:
         options:
-          model: gemini-2.0-flash
+          model: gemini-flash-latest
           temperature: 0.7
+
+  # ─── Kafka — Asset Events Consumer ──────────────────────────────────────────
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:29092}
+    consumer:
+      group-id: ai-assistant-group
+      auto-offset-reset: latest            # Sadece yeni eventleri al
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+        spring.json.value.default.type: com.wallet.ai.dto.AssetEventDto
+
+logging:
+  level:
+    com.wallet.ai: INFO
+    org.springframework.kafka: WARN

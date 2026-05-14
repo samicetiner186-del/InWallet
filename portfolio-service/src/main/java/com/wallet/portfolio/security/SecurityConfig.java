@@ -1,5 +1,7 @@
 package com.wallet.portfolio.security;
 
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -39,6 +41,9 @@ public class SecurityConfig {
                 .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/api/auth/**", "/api/market/**").permitAll()
                 .requestMatchers("/api/assets/user/**", "/api/goals/user/**", "/api/transactions/user/**").permitAll()
+                .requestMatchers("/api/financial-health/**").permitAll()
+                // Internal AI service calls (no JWT needed)
+                .requestMatchers(request -> "inwallet-ai-internal".equals(request.getHeader("X-Internal-Api-Key"))).permitAll()
                 .requestMatchers("/api/users/**", "/api/transactions/**", "/api/goals/**", "/api/assets/**", "/api/budgets/**").authenticated()
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                 .anyRequest().authenticated()

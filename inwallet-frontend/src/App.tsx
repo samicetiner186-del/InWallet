@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import './App.css';
 import Dashboard from './components/Dashboard';
 import AIChatWidget from './components/AIChatWidget';
@@ -16,6 +17,7 @@ import EmergencyFund from './pages/EmergencyFund';
 import Market from './pages/Market';
 import RecurringTransactions from './pages/RecurringTransactions';
 import Profile from './pages/Profile';
+import InflationDefense from './components/InflationDefense';
 
 const AppContent: React.FC = () => {
   const { isLoggedIn, username, firstName, lastName } = useAuth();
@@ -41,19 +43,35 @@ const AppContent: React.FC = () => {
   if (!isLoggedIn) return <LoginPage />;
 
   const renderView = () => {
-    switch(currentView) {
-      case 'dashboard': return <Dashboard />;
-      case 'portfolio': return <Portfolio />;
-      case 'market': return <Market />;
-      case 'transactions': return <Transactions />;
-      case 'goals': return <Goals />;
-      case 'recurring': return <RecurringTransactions />;
-      case 'dca': return <DCAPlanner />;
-      case 'emergency': return <EmergencyFund />;
-      case 'profile': return <Profile />;
-      case 'settings': return <Settings />;
-      default: return <Dashboard />;
-    }
+    return (
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={currentView}
+          initial={{ opacity: 0, x: 10 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -10 }}
+          transition={{ duration: 0.3, ease: "easeInOut" }}
+          style={{ width: '100%', height: '100%' }}
+        >
+          {(() => {
+            switch(currentView) {
+              case 'dashboard':  return <Dashboard />;
+              case 'portfolio':  return <Portfolio />;
+              case 'market':     return <Market />;
+              case 'transactions': return <Transactions />;
+              case 'goals':      return <Goals />;
+              case 'recurring':  return <RecurringTransactions />;
+              case 'dca':        return <DCAPlanner />;
+              case 'inflation':  return <InflationDefense />;
+              case 'emergency':  return <EmergencyFund />;
+              case 'profile':    return <Profile />;
+              case 'settings':   return <Settings />;
+              default:           return <Dashboard />;
+            }
+          })()}
+        </motion.div>
+      </AnimatePresence>
+    );
   };
 
   return (

@@ -21,6 +21,12 @@ public class BudgetController {
         return ResponseEntity.ok(budgetService.getBudgetsByUserId(userId));
     }
 
+    @GetMapping("/user/{userId}/status")
+    public ResponseEntity<List<com.wallet.portfolio.dto.BudgetStatusDto>> getBudgetStatus(@PathVariable Long userId) {
+        return ResponseEntity.ok(budgetService.getBudgetStatusByUserId(userId));
+    }
+
+
     @PostMapping
     public ResponseEntity<Budget> createBudget(@RequestBody Budget budget) {
         return ResponseEntity.ok(budgetService.createOrUpdateBudget(budget));
