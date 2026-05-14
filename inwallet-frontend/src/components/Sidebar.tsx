@@ -13,16 +13,16 @@ interface SidebarProps {
 }
 
 const menuItems = [
-  { id: 'dashboard',    label: 'Ana Sayfa',          icon: '🏠', desc: 'Genel özet panosu' },
-  { id: 'portfolio',    label: 'Portföyüm',          icon: '💼', desc: 'Varlıklarınızı inceleyin' },
-  { id: 'market',       label: 'Piyasalar',          icon: '📈', desc: 'Canlı veriler ve yatırım' },
-  { id: 'recurring',    label: 'Otomatik İşlemler',  icon: '🔁', desc: 'Tekrarlayan gelir/gider' },
-  { id: 'dca',          label: 'DCA Planlayıcı',     icon: '💰', desc: 'Düzenli yatırım planı' },
-  { id: 'inflation',    label: 'Enflasyon Savunma',  icon: '🔥', desc: 'Satın alma gücü analizi' },
-  { id: 'transactions', label: 'İşlem Geçmişi',      icon: '📋', desc: 'Gelir ve gider akışı' },
-  { id: 'goals',        label: 'Hedeflerim',         icon: '🎯', desc: 'Hayallerinizi planlayın' },
-  { id: 'profile',      label: 'Profilim',           icon: '👤', desc: 'Bilgilerinizi güncelleyin' },
-  { id: 'settings',     label: 'Ayarlar',            icon: '⚙️', desc: 'Uygulama tercihleri' },
+  { id: 'dashboard',    label: 'Ana Sayfa',          icon: null, desc: 'Genel özet panosu' },
+  { id: 'portfolio',    label: 'Portföyüm',          icon: null, desc: 'Varlıklarınızı inceleyin' },
+  { id: 'market',       label: 'Piyasalar',          icon: null, desc: 'Canlı veriler ve yatırım' },
+  { id: 'recurring',    label: 'Otomatik İşlemler',  icon: null, desc: 'Tekrarlayan gelir/gider' },
+  { id: 'dca',          label: 'DCA Planlayıcı',     icon: null, desc: 'Düzenli yatırım planı' },
+  { id: 'inflation',    label: 'Enflasyon Savunma',  icon: null, desc: 'Satın alma gücü analizi' },
+  { id: 'transactions', label: 'İşlem Geçmişi',      icon: null, desc: 'Gelir ve gider akışı' },
+  { id: 'goals',        label: 'Hedeflerim',         icon: null, desc: 'Hayallerinizi planlayın' },
+  { id: 'profile',      label: 'Profilim',           icon: null, desc: 'Bilgilerinizi güncelleyin' },
+  { id: 'settings',     label: 'Ayarlar',            icon: null, desc: 'Uygulama tercihleri' },
 ];
 
 
@@ -162,7 +162,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, currentView, onNavig
                       className={`nav-item ${currentView === item.id ? 'active' : ''}`}
                       onClick={() => handleNavigation(item.id)}
                     >
-                      <span style={{ fontSize: '16px', marginRight: '10px' }}>{item.icon}</span>
                       <div className="nav-text-content">
                         <span className="nav-label">{item.label}</span>
                       </div>
@@ -186,10 +185,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, currentView, onNavig
               transition={{ delay: 0.4 }}
             >
               <button className="quick-action-btn" onClick={toggleTheme} style={{ width: '100%', marginBottom: '10px' }}>
-                <span>{theme === 'dark' ? '☀️ Işık Modu' : '🌙 Koyu Mod'}</span>
+                <span>{theme === 'dark' ? 'Işık Modu' : 'Koyu Mod'}</span>
               </button>
               <button className="nav-item logout-btn" onClick={logout}>
-                <span style={{ marginRight: '8px' }}>🚪</span>
                 <span className="nav-label">Çıkış Yap</span>
               </button>
             </motion.div>

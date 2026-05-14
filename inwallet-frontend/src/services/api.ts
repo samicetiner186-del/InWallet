@@ -186,6 +186,19 @@ export const transactionApi = {
     if (!res.ok) throw new Error('İşlem silinemedi.');
     return true;
   },
+
+  updateTransaction: async (id: number, transaction: object) => {
+    const res = await request(`${BASE_URL}/api/transactions/${id}`, {
+      method: 'PUT',
+      headers: authHeaders(),
+      body: JSON.stringify(transaction),
+    });
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(errorText || 'İşlem güncellenemedi.');
+    }
+    return res.json();
+  },
 };
 
 export const goalApi = {

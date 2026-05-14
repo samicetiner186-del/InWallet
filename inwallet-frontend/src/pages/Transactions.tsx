@@ -84,6 +84,14 @@ const Transactions: React.FC = () => {
   const [newType, setNewType] = useState('expense');
   const [newCategory, setNewCategory] = useState('Diğer');
 
+  // Edit state
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingTx, setEditingTx] = useState<any>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editAmount, setEditAmount] = useState('');
+  const [editType, setEditType] = useState('expense');
+  const [editCategory, setEditCategory] = useState('Diğer');
+
   const fetchTransactions = async () => {
     if (!userId) return;
     setLoading(true);
@@ -122,6 +130,36 @@ const Transactions: React.FC = () => {
       alert('İşlem başarıyla kaydedildi!');
     } catch (err: any) {
       alert(`Hata: ${err.message || 'İşlem kaydedilemedi.'}`);
+    }
+  };
+
+  const openEditModal = (tx: any) => {
+    setEditingTx(tx);
+    setEditTitle(tx.description || '');
+    setEditAmount(String(tx.amount || ''));
+    setEditType((tx.type || 'EXPENSE').toLowerCase());
+    setEditCategory(tx.category || 'Diğer');
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditTransaction = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!userId || !editingTx) return;
+    try {
+      await transactionApi.updateTransaction(editingTx.id, {
+        amount: Number(editAmount),
+        type: editType.toUpperCase(),
+        description: editTitle,
+        category: editCategory,
+        transactionDate: editingTx.transactionDate,
+        user: { id: Number(userId) },
+      });
+      setIsEditModalOpen(false);
+      setEditingTx(null);
+      setTimeout(() => fetchTransactions(), 1000);
+      alert('İşlem başarıyla güncellendi!');
+    } catch (err: any) {
+      alert(`Hata: ${err.message || 'İşlem güncellenemedi.'}`);
     }
   };
 
@@ -225,7 +263,7 @@ const Transactions: React.FC = () => {
             <h3 style={{ margin: 0, fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)' }}>Son İşlemler</h3>
             <p style={{ color: 'var(--text-secondary)', fontSize: '13px', margin: '4px 0 0 0' }}>{transactions.length} kayıt</p>
           </div>
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
             {/* Filter tabs */}
             <div style={{ display: 'flex', background: 'var(--bg-primary)', padding: '4px', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
               {([
@@ -254,8 +292,11 @@ const Transactions: React.FC = () => {
                 >{tab.label}</button>
               ))}
             </div>
-            <button onClick={() => setIsModalOpen(true)} className="btn-primary" style={{ padding: '10px 20px', borderRadius: '10px', fontWeight: 700 }}>
-              + Yeni İşlem
+            <button onClick={() => { setNewType('income'); setIsModalOpen(true); }} className="btn-secondary" style={{ padding: '10px 16px', borderRadius: '10px', fontWeight: 700, color: '#10b981', borderColor: '#10b981' }}>
+              + Gelir Ekle
+            </button>
+            <button onClick={() => { setNewType('expense'); setIsModalOpen(true); }} className="btn-secondary" style={{ padding: '10px 16px', borderRadius: '10px', fontWeight: 700, color: '#ef4444', borderColor: '#ef4444' }}>
+              + Gider Ekle
             </button>
           </div>
         </div>
@@ -302,7 +343,7 @@ const Transactions: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Right: amount + label + delete */}
+                {/* Right: amount + label + actions */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                   <div style={{ textAlign: 'right' }}>
                     {/* Amount with explicit color */}
@@ -333,32 +374,41 @@ const Transactions: React.FC = () => {
                       {v.label}
                     </div>
                   </div>
-                  {/* Delete button */}
-                  <button
-                    onClick={() => handleDelete(tx.id)}
-                    style={{
-                      background: 'rgba(239,68,68,0.07)',
-                      border: '1px solid rgba(239,68,68,0.15)',
-                      color: '#ef4444',
-                      cursor: 'pointer',
-                      width: '34px', height: '34px',
-                      borderRadius: '9px',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      transition: 'all 0.2s ease',
-                      flexShrink: 0,
-                    }}
-                    onMouseEnter={e => {
-                      (e.currentTarget as HTMLButtonElement).style.background = 'rgba(239,68,68,0.18)';
-                      (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(239,68,68,0.4)';
-                    }}
-                    onMouseLeave={e => {
-                      (e.currentTarget as HTMLButtonElement).style.background = 'rgba(239,68,68,0.07)';
-                      (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(239,68,68,0.15)';
-                    }}
-                    title="İşlemi Sil"
-                  >
-                    <DeleteIcon />
-                  </button>
+                  {/* Actions */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <button
+                      onClick={() => openEditModal(tx)}
+                      style={{
+                        background: 'rgba(59,130,246,0.07)',
+                        border: '1px solid rgba(59,130,246,0.2)',
+                        color: 'var(--accent-blue)',
+                        cursor: 'pointer',
+                        width: '34px', height: '34px',
+                        borderRadius: '9px',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        transition: 'all 0.2s ease',
+                      }}
+                      title="İşlemi Düzenle"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    </button>
+                    <button
+                      onClick={() => handleDelete(tx.id)}
+                      style={{
+                        background: 'rgba(239,68,68,0.07)',
+                        border: '1px solid rgba(239,68,68,0.15)',
+                        color: '#ef4444',
+                        cursor: 'pointer',
+                        width: '34px', height: '34px',
+                        borderRadius: '9px',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        transition: 'all 0.2s ease',
+                      }}
+                      title="İşlemi Sil"
+                    >
+                      <DeleteIcon />
+                    </button>
+                  </div>
                 </div>
               </div>
             );
@@ -474,6 +524,115 @@ const Transactions: React.FC = () => {
                   }}
                 >
                   {newType === 'income' ? 'Gelir Kaydet' : 'Gider Kaydet'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {/* Edit Transaction Modal */}
+      {isEditModalOpen && editingTx && (
+        <div style={{
+          position: 'fixed', inset: 0,
+          background: 'rgba(0,0,0,0.55)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 1000, padding: '20px',
+        }}>
+          <div style={{
+            width: '100%', maxWidth: '480px',
+            background: 'var(--bg-secondary)',
+            border: '1px solid var(--border-color)',
+            borderRadius: '24px',
+            padding: '32px',
+            boxShadow: '0 24px 64px rgba(0,0,0,0.25)',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: 'var(--text-primary)' }}>İşlemi Düzenle</h3>
+                <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: 'var(--text-secondary)' }}>Bilgileri güncelleyin</p>
+              </div>
+              <button
+                onClick={() => { setIsEditModalOpen(false); setEditingTx(null); }}
+                style={{ width: '36px', height: '36px', borderRadius: '50%', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-secondary)', fontSize: '20px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >×</button>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '20px' }}>
+              <button
+                type="button"
+                onClick={() => setEditType('expense')}
+                style={{
+                  padding: '12px', borderRadius: '14px',
+                  border: `2px solid ${editType === 'expense' ? '#ef4444' : 'var(--border-color)'}`,
+                  background: editType === 'expense' ? 'rgba(239,68,68,0.08)' : 'transparent',
+                  color: editType === 'expense' ? '#ef4444' : 'var(--text-secondary)',
+                  fontWeight: 700, fontSize: '14px', cursor: 'pointer', transition: 'all 0.2s ease',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                }}
+              ><ExpenseIcon /> Gider</button>
+              <button
+                type="button"
+                onClick={() => setEditType('income')}
+                style={{
+                  padding: '12px', borderRadius: '14px',
+                  border: `2px solid ${editType === 'income' ? '#10b981' : 'var(--border-color)'}`,
+                  background: editType === 'income' ? 'rgba(16,185,129,0.08)' : 'transparent',
+                  color: editType === 'income' ? '#10b981' : 'var(--text-secondary)',
+                  fontWeight: 700, fontSize: '14px', cursor: 'pointer', transition: 'all 0.2s ease',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                }}
+              ><IncomeIcon /> Gelir</button>
+            </div>
+
+            <form onSubmit={handleEditTransaction} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div>
+                <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.6px', display: 'block', marginBottom: '8px' }}>Açıklama</label>
+                <input
+                  type="text" value={editTitle} onChange={e => setEditTitle(e.target.value)}
+                  placeholder="Açıklama girin" required
+                  style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1.5px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }}
+                />
+              </div>
+              <div>
+                <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.6px', display: 'block', marginBottom: '8px' }}>Tutar (₺)</label>
+                <input
+                  type="number" value={editAmount} onChange={e => setEditAmount(e.target.value)}
+                  placeholder="0.00" required min="0" step="any"
+                  style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1.5px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '20px', fontWeight: 700, outline: 'none', boxSizing: 'border-box' }}
+                />
+              </div>
+              <div>
+                <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.6px', display: 'block', marginBottom: '8px' }}>Kategori</label>
+                <select
+                  value={editCategory} onChange={e => setEditCategory(e.target.value)}
+                  style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1.5px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '14px', outline: 'none', boxSizing: 'border-box', cursor: 'pointer' }}
+                >
+                  <option value="Market">Market</option>
+                  <option value="Maaş">Maaş</option>
+                  <option value="Ulaşım">Ulaşım</option>
+                  <option value="Kira">Kira</option>
+                  <option value="Faturalar">Faturalar</option>
+                  <option value="Eğlence">Ğlenme</option>
+                  <option value="Yatırım">Yatırım</option>
+                  <option value="Diğer">Diğer</option>
+                </select>
+              </div>
+              <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
+                <button
+                  type="button" onClick={() => { setIsEditModalOpen(false); setEditingTx(null); }}
+                  style={{ flex: 1, padding: '13px', borderRadius: '12px', border: '1.5px solid var(--border-color)', background: 'transparent', color: 'var(--text-secondary)', fontSize: '14px', fontWeight: 600, cursor: 'pointer' }}
+                >İptal</button>
+                <button
+                  type="submit"
+                  style={{
+                    flex: 2, padding: '13px', borderRadius: '12px', border: 'none',
+                    background: editType === 'income' ? 'linear-gradient(135deg, #059669, #10b981)' : 'linear-gradient(135deg, #dc2626, #ef4444)',
+                    color: 'white', fontSize: '14px', fontWeight: 700, cursor: 'pointer',
+                    boxShadow: editType === 'income' ? '0 4px 15px rgba(16,185,129,0.3)' : '0 4px 15px rgba(239,68,68,0.3)',
+                  }}
+                >
+                  Güncelle
                 </button>
               </div>
             </form>

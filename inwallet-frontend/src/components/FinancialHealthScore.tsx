@@ -168,11 +168,11 @@ const FinancialHealthScore: React.FC<FinancialHealthScoreProps> = ({ stats, asse
   }, [totalScore]);
 
   const getGrade = (score: number) => {
-    if (score >= 90) return { label: 'Mükemmel', color: '#10b981', emoji: '🏆' };
-    if (score >= 75) return { label: 'Çok İyi', color: '#60a5fa', emoji: '⭐' };
-    if (score >= 60) return { label: 'İyi', color: '#f59e0b', emoji: '👍' };
-    if (score >= 45) return { label: 'Orta', color: '#f97316', emoji: '📈' };
-    return { label: 'Geliştirilmeli', color: '#ef4444', emoji: '⚠️' };
+    if (score >= 90) return { label: 'Mükemmel', color: '#10b981' };
+    if (score >= 75) return { label: 'Çok İyi', color: '#60a5fa' };
+    if (score >= 60) return { label: 'İyi', color: '#f59e0b' };
+    if (score >= 45) return { label: 'Orta', color: '#f97316' };
+    return { label: 'Geliştirilmeli', color: '#ef4444' };
   };
 
   const grade = getGrade(totalScore);
@@ -186,7 +186,7 @@ const FinancialHealthScore: React.FC<FinancialHealthScoreProps> = ({ stats, asse
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' }}>
           <div>
             <h3 style={{ margin: 0, fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span>{grade.emoji}</span> Finansal Sağlık Skoru
+              Finansal Sağlık Skoru
             </h3>
             <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'var(--text-secondary)' }}>
               Verilerine göre anlık hesaplanan skorunuz.
